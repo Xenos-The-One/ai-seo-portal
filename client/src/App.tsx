@@ -21,12 +21,14 @@ import VersionHistory from "./pages/VersionHistory";
 import QualityScore from "./pages/QualityScore";
 import SeoAudit from "./pages/SeoAudit";
 import ClientPortal from "./pages/ClientPortal";
+import ClientPortalWhitelabel from "./pages/ClientPortalWhitelabel";
 import Publishing from "./pages/Publishing";
 import Briefs from "./pages/Briefs";
 import BriefForm from "./pages/BriefForm";
 import Notifications from "./pages/Notifications";
 import Settings from "./pages/Settings";
 import ClientOnboarding from "./pages/ClientOnboarding";
+import RecurringPlans from "./pages/RecurringPlans";
 import CommandPalette from "./components/CommandPalette";
 
 function DashboardRouter() {
@@ -51,9 +53,11 @@ function DashboardRouter() {
         <Route path="/briefs" component={Briefs} />
         <Route path="/notifications" component={Notifications} />
         <Route path="/client-portal" component={ClientPortal} />
+      <Route path="/client-view" component={ClientPortalWhitelabel} />
         <Route path="/reports" component={Reports} />
         <Route path="/settings" component={Settings} />
         <Route path="/onboarding" component={ClientOnboarding} />
+        <Route path="/recurring-plans" component={RecurringPlans} />
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />
       </Switch>

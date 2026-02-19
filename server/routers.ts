@@ -28,6 +28,7 @@ import { briefsRouter } from "./routers/briefs";
 import { notificationsRouter } from "./routers/notifications";
 import { seoAuditRouter } from "./routers/seoAudit";
 import { agencySettingsRouter } from "./routers/agencySettings";
+import { recurringPlansRouter } from "./routers/recurringPlans";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -143,6 +144,12 @@ export const appRouter = router({
       .input(z.object({ id: z.number() }))
       .query(async ({ input }) => {
         return getContentById(input.id);
+      }),
+    listByClient: protectedProcedure
+      .input(z.object({ clientId: z.number() }))
+      .query(async ({ ctx, input }) => {
+        const allContent = await getContentWithClient(ctx.user.id);
+        return allContent.filter((item) => item.content.clientId === input.clientId).map((item) => item.content);
       }),
     generate: protectedProcedure
       .input(z.object({
@@ -340,6 +347,7 @@ export const appRouter = router({
   notifications: notificationsRouter,
   seoAudit: seoAuditRouter,
   agencySettings: agencySettingsRouter,
+  recurringPlans: recurringPlansRouter,
 
   // TODO: add feature routers here, e.g.
   // todo: router({

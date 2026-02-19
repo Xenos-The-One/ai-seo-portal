@@ -83,3 +83,8 @@
 - [x] Global search/command palette (Ctrl+K) for searching clients, content, templates, briefs
 - [x] Content approval email workflow (auto-send formatted preview on approval)
 - [x] Customizable dashboard widget system with drag-and-drop reordering
+
+## Round 8 Follow-up Features
+- [x] Client-facing white-labeled portal (use agency branding from Settings)
+- [x] Batch scheduling with recurring content plans (auto-generate and schedule)
+- [ ] Create reusable skill documenting AI SEO Portal architecture

@@ -305,3 +305,27 @@ export const agencySettings = mysqlTable("agency_settings", {
 });
 
 export type AgencySetting = typeof agencySettings.$inferSelect;
+
+/**
+ * Recurring content plans - automate content generation on a schedule
+ */
+export const recurringPlans = mysqlTable("recurringPlans", {
+  id: int("id").autoincrement().primaryKey(),
+  clientId: int("clientId").notNull().references(() => clients.id),
+  planName: varchar("planName", { length: 255 }).notNull(),
+  frequency: mysqlEnum("frequency", ["daily", "weekly", "biweekly", "monthly"]).notNull(),
+  postsPerCycle: int("postsPerCycle").notNull().default(1),
+  topicTemplate: text("topicTemplate"), // Template for generating topics
+  customPrompt: text("customPrompt"),
+  enableWebResearch: int("enableWebResearch").notNull().default(1),
+  enableImageGeneration: int("enableImageGeneration").notNull().default(1),
+  isActive: int("isActive").notNull().default(1),
+  lastRunDate: timestamp("lastRunDate"),
+  nextRunDate: timestamp("nextRunDate"),
+  createdBy: int("createdBy").notNull().references(() => users.id),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type RecurringPlan = typeof recurringPlans.$inferSelect;
+export type InsertRecurringPlan = typeof recurringPlans.$inferInsert;

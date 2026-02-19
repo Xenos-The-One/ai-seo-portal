@@ -64,6 +64,13 @@
       "when": 1771524922792,
       "tag": "0008_worthless_quasar",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1771527093332,
+      "tag": "0009_short_cloak",
+      "breakpoints": true
     }
   ]
 }
