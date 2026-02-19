@@ -22,6 +22,8 @@ import { collaborationRouter } from "./routers/collaboration";
 import { analyticsRouter } from "./routers/analytics";
 import { repurposingRouter } from "./routers/repurposing";
 import { qualityScoreRouter } from "./routers/qualityScore";
+import { webhooksRouter } from "./routers/webhooks";
+import { briefsRouter } from "./routers/briefs";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -241,6 +243,8 @@ export const appRouter = router({
   analytics: analyticsRouter,
   repurposing: repurposingRouter,
   qualityScore: qualityScoreRouter,
+  webhooks: webhooksRouter,
+  briefs: briefsRouter,
 
   // TODO: add feature routers here, e.g.
   // todo: router({

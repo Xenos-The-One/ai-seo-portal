@@ -195,3 +195,70 @@ export const contentQualityScores = mysqlTable("contentQualityScores", {
 
 export type ContentQualityScore = typeof contentQualityScores.$inferSelect;
 export type InsertContentQualityScore = typeof contentQualityScores.$inferInsert;
+
+
+/**
+ * Webhook Configurations table - stores CMS publishing endpoints per client
+ */
+export const webhookConfigs = mysqlTable("webhookConfigs", {
+  id: int("id").autoincrement().primaryKey(),
+  clientId: int("clientId").notNull().references(() => clients.id, { onDelete: "cascade" }),
+  name: varchar("name", { length: 255 }).notNull(),
+  platform: mysqlEnum("platform", ["wordpress", "ghost", "webflow", "custom"]).notNull(),
+  endpointUrl: text("endpointUrl").notNull(),
+  apiKey: text("apiKey"),
+  authHeader: text("authHeader"),
+  isActive: int("isActive").default(1).notNull(),
+  lastPublishedAt: timestamp("lastPublishedAt"),
+  createdBy: int("createdBy").notNull().references(() => users.id),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type WebhookConfig = typeof webhookConfigs.$inferSelect;
+export type InsertWebhookConfig = typeof webhookConfigs.$inferInsert;
+
+/**
+ * Publish Logs table - tracks content publishing attempts
+ */
+export const publishLogs = mysqlTable("publishLogs", {
+  id: int("id").autoincrement().primaryKey(),
+  contentId: int("contentId").notNull().references(() => content.id, { onDelete: "cascade" }),
+  webhookId: int("webhookId").notNull().references(() => webhookConfigs.id, { onDelete: "cascade" }),
+  status: mysqlEnum("status", ["pending", "success", "failed"]).default("pending").notNull(),
+  responseCode: int("responseCode"),
+  responseBody: text("responseBody"),
+  publishedAt: timestamp("publishedAt").defaultNow().notNull(),
+});
+
+export type PublishLog = typeof publishLogs.$inferSelect;
+export type InsertPublishLog = typeof publishLogs.$inferInsert;
+
+/**
+ * Content Briefs table - stores client-submitted content briefs
+ */
+export const contentBriefs = mysqlTable("contentBriefs", {
+  id: int("id").autoincrement().primaryKey(),
+  clientId: int("clientId").notNull().references(() => clients.id, { onDelete: "cascade" }),
+  shareToken: varchar("shareToken", { length: 64 }).notNull().unique(),
+  
+  // Brief details
+  title: varchar("title", { length: 500 }),
+  targetKeywords: text("targetKeywords"),
+  targetAudience: text("targetAudience"),
+  tonePreference: mysqlEnum("tonePreference", ["professional", "casual", "technical", "friendly", "authoritative", "conversational"]).default("professional"),
+  contentType: mysqlEnum("contentType", ["blog-post", "how-to", "listicle", "case-study", "guide", "news"]).default("blog-post"),
+  additionalNotes: text("additionalNotes"),
+  wordCountTarget: int("wordCountTarget").default(1500),
+  
+  // Status
+  status: mysqlEnum("briefStatus", ["submitted", "in_review", "accepted", "rejected"]).default("submitted").notNull(),
+  submittedBy: varchar("submittedBy", { length: 255 }),
+  submittedEmail: varchar("submittedEmail", { length: 320 }),
+  
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ContentBrief = typeof contentBriefs.$inferSelect;
+export type InsertContentBrief = typeof contentBriefs.$inferInsert;

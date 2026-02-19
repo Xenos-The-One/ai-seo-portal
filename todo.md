@@ -59,3 +59,8 @@
 - [x] Real-time content performance tracking (auto-capture analytics on publish)
 - [x] Content version history with side-by-side diffs
 - [x] Automated content quality scoring (readability, SEO, tone, engagement)
+
+## Round 4 Follow-up Features
+- [x] Role-based client access (clients can log in and see/approve only their content)
+- [x] Webhook/API publishing integration (push approved content to WordPress/CMS)
+- [x] Content brief intake form (shareable form for clients to submit briefs)

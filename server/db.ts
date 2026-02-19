@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, clients, InsertClient, content, InsertContent, contentTemplates, InsertContentTemplate, contentComments, contentRevisions, contentAnalytics, contentRepurposed, contentQualityScores } from "../drizzle/schema";
+import { InsertUser, users, clients, InsertClient, content, InsertContent, contentTemplates, InsertContentTemplate, contentComments, contentRevisions, contentAnalytics, contentRepurposed, contentQualityScores, webhookConfigs, publishLogs, contentBriefs } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -337,4 +337,107 @@ export async function getQualityScore(contentId: number) {
     .where(eq(contentQualityScores.contentId, contentId))
     .limit(1);
   return results.length > 0 ? results[0] : null;
+}
+
+
+// Webhook Config functions
+export async function createWebhookConfig(data: any) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(webhookConfigs).values(data);
+  return result[0].insertId;
+}
+
+export async function getWebhooksByClient(clientId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(webhookConfigs).where(eq(webhookConfigs.clientId, clientId));
+}
+
+export async function getAllWebhooks(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(webhookConfigs).where(eq(webhookConfigs.createdBy, userId));
+}
+
+export async function getWebhookById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(webhookConfigs).where(eq(webhookConfigs.id, id)).limit(1);
+  return result[0] || null;
+}
+
+export async function updateWebhookConfig(id: number, updates: any) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(webhookConfigs).set({ ...updates, updatedAt: new Date() }).where(eq(webhookConfigs.id, id));
+}
+
+export async function deleteWebhookConfig(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(webhookConfigs).where(eq(webhookConfigs.id, id));
+}
+
+// Publish Log functions
+export async function createPublishLog(data: any) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(publishLogs).values(data);
+  return result[0].insertId;
+}
+
+export async function getPublishLogs(contentId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(publishLogs).where(eq(publishLogs.contentId, contentId)).orderBy(publishLogs.publishedAt);
+}
+
+export async function updatePublishLog(id: number, updates: any) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(publishLogs).set(updates).where(eq(publishLogs.id, id));
+}
+
+// Content Brief functions
+export async function createContentBrief(data: any) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(contentBriefs).values(data);
+  return result[0].insertId;
+}
+
+export async function getContentBriefs(clientId?: number) {
+  const db = await getDb();
+  if (!db) return [];
+  if (clientId) {
+    return db.select().from(contentBriefs).where(eq(contentBriefs.clientId, clientId)).orderBy(contentBriefs.createdAt);
+  }
+  return db.select().from(contentBriefs).orderBy(contentBriefs.createdAt);
+}
+
+export async function getContentBriefByToken(token: string) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(contentBriefs).where(eq(contentBriefs.shareToken, token)).limit(1);
+  return result[0] || null;
+}
+
+export async function getContentBriefById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(contentBriefs).where(eq(contentBriefs.id, id)).limit(1);
+  return result[0] || null;
+}
+
+export async function updateContentBrief(id: number, updates: any) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(contentBriefs).set({ ...updates, updatedAt: new Date() }).where(eq(contentBriefs.id, id));
+}
+
+export async function deleteContentBrief(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(contentBriefs).where(eq(contentBriefs.id, id));
 }

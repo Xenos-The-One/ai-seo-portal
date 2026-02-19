@@ -18,8 +18,12 @@ import Analytics from "./pages/Analytics";
 import Repurposing from "./pages/Repurposing";
 import VersionHistory from "./pages/VersionHistory";
 import QualityScore from "./pages/QualityScore";
+import ClientPortal from "./pages/ClientPortal";
+import Publishing from "./pages/Publishing";
+import Briefs from "./pages/Briefs";
+import BriefForm from "./pages/BriefForm";
 
-function Router() {
+function DashboardRouter() {
   return (
     <DashboardLayout>
       <Switch>
@@ -31,10 +35,13 @@ function Router() {
         <Route path="/scheduling" component={Scheduling} />
         <Route path="/templates" component={Templates} />
         <Route path="/collaboration" component={Collaboration} />
-        <Route path="/analytics" component={Analytics} />
-        <Route path="/repurposing" component={Repurposing} />
         <Route path="/version-history" component={VersionHistory} />
         <Route path="/quality-score" component={QualityScore} />
+        <Route path="/analytics" component={Analytics} />
+        <Route path="/repurposing" component={Repurposing} />
+        <Route path="/publishing" component={Publishing} />
+        <Route path="/briefs" component={Briefs} />
+        <Route path="/client-portal" component={ClientPortal} />
         <Route path="/reports" component={Reports} />
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />
@@ -43,17 +50,22 @@ function Router() {
   );
 }
 
-// NOTE: About Theme
-// - First choose a default theme according to your design style (dark or light bg), than change color palette in index.css
-//   to keep consistent foreground/background color across components
-// - If you want to make theme switchable, pass `switchable` ThemeProvider and use `useTheme` hook
+function Router() {
+  return (
+    <Switch>
+      {/* Public brief submission form - no auth required */}
+      <Route path="/brief/:token" component={BriefForm} />
+      {/* All other routes go through dashboard layout */}
+      <Route component={DashboardRouter} />
+    </Switch>
+  );
+}
 
 function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider
         defaultTheme="dark"
-        // switchable
       >
         <TooltipProvider>
           <Toaster />
