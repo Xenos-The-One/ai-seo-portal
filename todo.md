@@ -54,3 +54,8 @@
 
 ## Bug Fixes
 - [x] Fix duplicate key error in Reports page (use IDs instead of names)
+
+## Round 3 Follow-up Features
+- [x] Real-time content performance tracking (auto-capture analytics on publish)
+- [x] Content version history with side-by-side diffs
+- [x] Automated content quality scoring (readability, SEO, tone, engagement)

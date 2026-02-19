@@ -16,6 +16,8 @@ import Templates from "./pages/Templates";
 import Collaboration from "./pages/Collaboration";
 import Analytics from "./pages/Analytics";
 import Repurposing from "./pages/Repurposing";
+import VersionHistory from "./pages/VersionHistory";
+import QualityScore from "./pages/QualityScore";
 
 function Router() {
   return (
@@ -31,6 +33,8 @@ function Router() {
         <Route path="/collaboration" component={Collaboration} />
         <Route path="/analytics" component={Analytics} />
         <Route path="/repurposing" component={Repurposing} />
+        <Route path="/version-history" component={VersionHistory} />
+        <Route path="/quality-score" component={QualityScore} />
         <Route path="/reports" component={Reports} />
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />

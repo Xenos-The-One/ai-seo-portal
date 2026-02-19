@@ -172,3 +172,26 @@ export const contentRepurposed = mysqlTable("contentRepurposed", {
 
 export type ContentRepurposed = typeof contentRepurposed.$inferSelect;
 export type InsertContentRepurposed = typeof contentRepurposed.$inferInsert;
+
+
+/**
+ * Content Quality Scores table - stores automated quality analysis results
+ */
+export const contentQualityScores = mysqlTable("contentQualityScores", {
+  id: int("id").autoincrement().primaryKey(),
+  contentId: int("contentId").notNull().references(() => content.id, { onDelete: "cascade" }),
+  overallScore: int("overallScore").default(0).notNull(),
+  readabilityScore: int("readabilityScore").default(0).notNull(),
+  seoScore: int("seoScore").default(0).notNull(),
+  toneScore: int("toneScore").default(0).notNull(),
+  engagementScore: int("engagementScore").default(0).notNull(),
+  readabilityDetails: text("readabilityDetails"),
+  seoDetails: text("seoDetails"),
+  toneDetails: text("toneDetails"),
+  engagementDetails: text("engagementDetails"),
+  suggestions: text("suggestions"),
+  analyzedAt: timestamp("analyzedAt").defaultNow().notNull(),
+});
+
+export type ContentQualityScore = typeof contentQualityScores.$inferSelect;
+export type InsertContentQualityScore = typeof contentQualityScores.$inferInsert;

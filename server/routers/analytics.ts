@@ -55,4 +55,13 @@ export const analyticsRouter = router({
       await updateAnalytics(contentId, updateData);
       return { success: true };
     }),
+
+  // Get all analytics across all content for overview
+  getAllMetrics: protectedProcedure.query(async () => {
+    const { getDb } = await import("../db");
+    const db = await getDb();
+    if (!db) return [];
+    const { contentAnalytics } = await import("../../drizzle/schema");
+    return await db.select().from(contentAnalytics).orderBy(contentAnalytics.recordedAt);
+  }),
 });

@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, clients, InsertClient, content, InsertContent, contentTemplates, InsertContentTemplate, contentComments, contentRevisions, contentAnalytics, contentRepurposed } from "../drizzle/schema";
+import { InsertUser, users, clients, InsertClient, content, InsertContent, contentTemplates, InsertContentTemplate, contentComments, contentRevisions, contentAnalytics, contentRepurposed, contentQualityScores } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -315,4 +315,26 @@ export async function deleteRepurposedContent(id: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   await db.delete(contentRepurposed).where(eq(contentRepurposed.id, id));
+}
+
+
+// Quality Score functions
+export async function saveQualityScore(data: any) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  // Delete existing score for this content first
+  await db.delete(contentQualityScores).where(eq(contentQualityScores.contentId, data.contentId));
+  const result = await db.insert(contentQualityScores).values(data);
+  return result[0];
+}
+
+export async function getQualityScore(contentId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const results = await db
+    .select()
+    .from(contentQualityScores)
+    .where(eq(contentQualityScores.contentId, contentId))
+    .limit(1);
+  return results.length > 0 ? results[0] : null;
 }
