@@ -37,6 +37,37 @@ export const clients = mysqlTable("clients", {
   createdBy: int("createdBy").notNull().references(() => users.id),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+
+  // Personal contact info
+  phone: varchar("phone", { length: 50 }),
+  address: text("address"),
+  city: varchar("city", { length: 100 }),
+  state: varchar("state", { length: 100 }),
+  zipCode: varchar("zipCode", { length: 20 }),
+  country: varchar("country", { length: 100 }),
+
+  // Business information
+  businessName: varchar("businessName", { length: 255 }),
+  businessType: varchar("businessType", { length: 100 }),
+  industry: varchar("industry", { length: 100 }),
+  businessPhone: varchar("businessPhone", { length: 50 }),
+  businessEmail: varchar("businessEmail", { length: 320 }),
+  businessWebsite: varchar("businessWebsite", { length: 500 }),
+  businessAddress: text("businessAddress"),
+
+  // Website login credentials (for the client's website we manage)
+  websiteUrl: varchar("websiteUrl", { length: 500 }),
+  websitePlatform: varchar("websitePlatform", { length: 100 }),
+  websiteLoginUrl: varchar("websiteLoginUrl", { length: 500 }),
+  websiteUsername: varchar("websiteUsername", { length: 255 }),
+  websitePassword: text("websitePassword"),
+  websiteNotes: text("websiteNotes"),
+
+  // Social media
+  socialFacebook: varchar("socialFacebook", { length: 500 }),
+  socialInstagram: varchar("socialInstagram", { length: 500 }),
+  socialLinkedin: varchar("socialLinkedin", { length: 500 }),
+  socialTwitter: varchar("socialTwitter", { length: 500 }),
 });
 
 export type Client = typeof clients.$inferSelect;

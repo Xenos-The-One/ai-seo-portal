@@ -11,13 +11,16 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Pencil, Trash2, Building2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Pencil, Trash2, Building2, Mail, Phone, Globe, ChevronRight } from "lucide-react";
 import { useState } from "react";
+import { useLocation } from "wouter";
 import { toast } from "sonner";
 
 export default function Clients() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<any>(null);
+  const [, setLocation] = useLocation();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -26,9 +29,14 @@ export default function Clients() {
   });
 
   const { data: clients, isLoading, refetch } = trpc.clients.list.useQuery();
+  const { data: contentList } = trpc.content.list.useQuery();
   const createMutation = trpc.clients.create.useMutation();
   const updateMutation = trpc.clients.update.useMutation();
   const deleteMutation = trpc.clients.delete.useMutation();
+
+  const getClientContentCount = (clientId: number) => {
+    return contentList?.filter((c) => c.content.clientId === clientId).length || 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,7 +60,8 @@ export default function Clients() {
     }
   };
 
-  const handleEdit = (client: any) => {
+  const handleEdit = (e: React.MouseEvent, client: any) => {
+    e.stopPropagation();
     setEditingClient(client);
     setFormData({
       name: client.name,
@@ -63,7 +72,8 @@ export default function Clients() {
     setIsCreateOpen(true);
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (e: React.MouseEvent, id: number) => {
+    e.stopPropagation();
     if (confirm("Are you sure you want to delete this client?")) {
       try {
         await deleteMutation.mutateAsync({ id });
@@ -81,7 +91,7 @@ export default function Clients() {
         <div>
           <h1 className="text-3xl font-bold text-foreground">Clients</h1>
           <p className="text-muted-foreground mt-2">
-            Manage your agency clients
+            Manage your agency clients — click a client to view full details
           </p>
         </div>
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
@@ -170,50 +180,95 @@ export default function Clients() {
         </div>
       ) : clients && clients.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {clients.map((client) => (
-            <Card key={client.id}>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Building2 className="h-5 w-5 text-primary" />
-                  {client.name}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2 mb-4">
-                  {client.email && (
-                    <p className="text-sm text-muted-foreground">{client.email}</p>
-                  )}
-                  {client.company && (
-                    <p className="text-sm text-muted-foreground">{client.company}</p>
-                  )}
-                  {client.notes && (
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {client.notes}
-                    </p>
-                  )}
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleEdit(client)}
-                  >
-                    <Pencil className="h-4 w-4 mr-1" />
-                    Edit
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleDelete(client.id)}
-                    disabled={deleteMutation.isPending}
-                  >
-                    <Trash2 className="h-4 w-4 mr-1" />
-                    Delete
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+          {clients.map((client) => {
+            const contentCount = getClientContentCount(client.id);
+            return (
+              <Card
+                key={client.id}
+                className="cursor-pointer hover:border-primary/50 transition-all duration-200 group"
+                onClick={() => setLocation(`/clients/${client.id}`)}
+              >
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between">
+                    <CardTitle className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+                        <span className="text-sm font-bold text-primary">
+                          {client.name?.charAt(0)?.toUpperCase() || "?"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-base">{client.name}</span>
+                        {client.company && (
+                          <p className="text-xs text-muted-foreground font-normal mt-0.5">
+                            {client.company}
+                          </p>
+                        )}
+                      </div>
+                    </CardTitle>
+                    <ChevronRight className="h-5 w-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2 mb-4">
+                    {client.email && (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Mail className="h-3.5 w-3.5" />
+                        {client.email}
+                      </div>
+                    )}
+                    {client.phone && (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Phone className="h-3.5 w-3.5" />
+                        {client.phone}
+                      </div>
+                    )}
+                    {client.businessWebsite && (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Globe className="h-3.5 w-3.5" />
+                        {client.businessWebsite}
+                      </div>
+                    )}
+                    {client.notes && (
+                      <p className="text-sm text-muted-foreground line-clamp-2 mt-2">
+                        {client.notes}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex gap-2">
+                      {client.industry && (
+                        <Badge variant="outline" className="text-xs">
+                          {client.industry}
+                        </Badge>
+                      )}
+                      <Badge className="bg-primary/20 text-primary text-xs">
+                        {contentCount} content
+                      </Badge>
+                    </div>
+                    <div className="flex gap-1">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 p-0"
+                        onClick={(e) => handleEdit(e, client)}
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                        onClick={(e) => handleDelete(e, client.id)}
+                        disabled={deleteMutation.isPending}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       ) : (
         <Card>

@@ -8,6 +8,7 @@ import {
   createClient, 
   updateClient, 
   deleteClient,
+  getClientById,
   getContentWithClient,
   getContentById,
   createContent,
@@ -24,6 +25,8 @@ import { repurposingRouter } from "./routers/repurposing";
 import { qualityScoreRouter } from "./routers/qualityScore";
 import { webhooksRouter } from "./routers/webhooks";
 import { briefsRouter } from "./routers/briefs";
+import { notificationsRouter } from "./routers/notifications";
+import { seoAuditRouter } from "./routers/seoAudit";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -44,12 +47,40 @@ export const appRouter = router({
     list: protectedProcedure.query(async ({ ctx }) => {
       return getClientsByUser(ctx.user.id);
     }),
+    getById: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        return getClientById(input.id);
+      }),
     create: protectedProcedure
       .input(z.object({
         name: z.string().min(1),
         email: z.string().email().optional(),
         company: z.string().optional(),
         notes: z.string().optional(),
+        phone: z.string().optional(),
+        address: z.string().optional(),
+        city: z.string().optional(),
+        state: z.string().optional(),
+        zipCode: z.string().optional(),
+        country: z.string().optional(),
+        businessName: z.string().optional(),
+        businessType: z.string().optional(),
+        industry: z.string().optional(),
+        businessPhone: z.string().optional(),
+        businessEmail: z.string().email().optional().or(z.literal("")),
+        businessWebsite: z.string().optional(),
+        businessAddress: z.string().optional(),
+        websiteUrl: z.string().optional(),
+        websitePlatform: z.string().optional(),
+        websiteLoginUrl: z.string().optional(),
+        websiteUsername: z.string().optional(),
+        websitePassword: z.string().optional(),
+        websiteNotes: z.string().optional(),
+        socialFacebook: z.string().optional(),
+        socialInstagram: z.string().optional(),
+        socialLinkedin: z.string().optional(),
+        socialTwitter: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         const clientId = await createClient({
@@ -62,9 +93,32 @@ export const appRouter = router({
       .input(z.object({
         id: z.number(),
         name: z.string().min(1).optional(),
-        email: z.string().email().optional(),
+        email: z.string().email().optional().or(z.literal("")),
         company: z.string().optional(),
         notes: z.string().optional(),
+        phone: z.string().optional(),
+        address: z.string().optional(),
+        city: z.string().optional(),
+        state: z.string().optional(),
+        zipCode: z.string().optional(),
+        country: z.string().optional(),
+        businessName: z.string().optional(),
+        businessType: z.string().optional(),
+        industry: z.string().optional(),
+        businessPhone: z.string().optional(),
+        businessEmail: z.string().email().optional().or(z.literal("")),
+        businessWebsite: z.string().optional(),
+        businessAddress: z.string().optional(),
+        websiteUrl: z.string().optional(),
+        websitePlatform: z.string().optional(),
+        websiteLoginUrl: z.string().optional(),
+        websiteUsername: z.string().optional(),
+        websitePassword: z.string().optional(),
+        websiteNotes: z.string().optional(),
+        socialFacebook: z.string().optional(),
+        socialInstagram: z.string().optional(),
+        socialLinkedin: z.string().optional(),
+        socialTwitter: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
         const { id, ...updates } = input;
@@ -245,6 +299,8 @@ export const appRouter = router({
   qualityScore: qualityScoreRouter,
   webhooks: webhooksRouter,
   briefs: briefsRouter,
+  notifications: notificationsRouter,
+  seoAudit: seoAuditRouter,
 
   // TODO: add feature routers here, e.g.
   // todo: router({

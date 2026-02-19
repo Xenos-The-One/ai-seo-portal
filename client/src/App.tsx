@@ -7,6 +7,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import DashboardLayout from "./components/DashboardLayout";
 import Dashboard from "./pages/Dashboard";
 import Clients from "./pages/Clients";
+import ClientDetail from "./pages/ClientDetail";
 import Content from "./pages/Content";
 import ContentDetail from "./pages/ContentDetail";
 import Reports from "./pages/Reports";
@@ -18,10 +19,12 @@ import Analytics from "./pages/Analytics";
 import Repurposing from "./pages/Repurposing";
 import VersionHistory from "./pages/VersionHistory";
 import QualityScore from "./pages/QualityScore";
+import SeoAudit from "./pages/SeoAudit";
 import ClientPortal from "./pages/ClientPortal";
 import Publishing from "./pages/Publishing";
 import Briefs from "./pages/Briefs";
 import BriefForm from "./pages/BriefForm";
+import Notifications from "./pages/Notifications";
 
 function DashboardRouter() {
   return (
@@ -29,6 +32,7 @@ function DashboardRouter() {
       <Switch>
         <Route path="/" component={Dashboard} />
         <Route path="/clients" component={Clients} />
+        <Route path="/clients/:id" component={ClientDetail} />
         <Route path="/content" component={Content} />
         <Route path="/content/:id" component={ContentDetail} />
         <Route path="/bulk" component={BulkGeneration} />
@@ -37,10 +41,12 @@ function DashboardRouter() {
         <Route path="/collaboration" component={Collaboration} />
         <Route path="/version-history" component={VersionHistory} />
         <Route path="/quality-score" component={QualityScore} />
+        <Route path="/seo-audit" component={SeoAudit} />
         <Route path="/analytics" component={Analytics} />
         <Route path="/repurposing" component={Repurposing} />
         <Route path="/publishing" component={Publishing} />
         <Route path="/briefs" component={Briefs} />
+        <Route path="/notifications" component={Notifications} />
         <Route path="/client-portal" component={ClientPortal} />
         <Route path="/reports" component={Reports} />
         <Route path="/404" component={NotFound} />

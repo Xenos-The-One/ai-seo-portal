@@ -1,0 +1,23 @@
+ALTER TABLE `clients` ADD `phone` varchar(50);--> statement-breakpoint
+ALTER TABLE `clients` ADD `address` text;--> statement-breakpoint
+ALTER TABLE `clients` ADD `city` varchar(100);--> statement-breakpoint
+ALTER TABLE `clients` ADD `state` varchar(100);--> statement-breakpoint
+ALTER TABLE `clients` ADD `zipCode` varchar(20);--> statement-breakpoint
+ALTER TABLE `clients` ADD `country` varchar(100);--> statement-breakpoint
+ALTER TABLE `clients` ADD `businessName` varchar(255);--> statement-breakpoint
+ALTER TABLE `clients` ADD `businessType` varchar(100);--> statement-breakpoint
+ALTER TABLE `clients` ADD `industry` varchar(100);--> statement-breakpoint
+ALTER TABLE `clients` ADD `businessPhone` varchar(50);--> statement-breakpoint
+ALTER TABLE `clients` ADD `businessEmail` varchar(320);--> statement-breakpoint
+ALTER TABLE `clients` ADD `businessWebsite` varchar(500);--> statement-breakpoint
+ALTER TABLE `clients` ADD `businessAddress` text;--> statement-breakpoint
+ALTER TABLE `clients` ADD `websiteUrl` varchar(500);--> statement-breakpoint
+ALTER TABLE `clients` ADD `websitePlatform` varchar(100);--> statement-breakpoint
+ALTER TABLE `clients` ADD `websiteLoginUrl` varchar(500);--> statement-breakpoint
+ALTER TABLE `clients` ADD `websiteUsername` varchar(255);--> statement-breakpoint
+ALTER TABLE `clients` ADD `websitePassword` text;--> statement-breakpoint
+ALTER TABLE `clients` ADD `websiteNotes` text;--> statement-breakpoint
+ALTER TABLE `clients` ADD `socialFacebook` varchar(500);--> statement-breakpoint
+ALTER TABLE `clients` ADD `socialInstagram` varchar(500);--> statement-breakpoint
+ALTER TABLE `clients` ADD `socialLinkedin` varchar(500);--> statement-breakpoint
+ALTER TABLE `clients` ADD `socialTwitter` varchar(500);
