@@ -13,6 +13,9 @@ import Reports from "./pages/Reports";
 import BulkGeneration from "./pages/BulkGeneration";
 import Scheduling from "./pages/Scheduling";
 import Templates from "./pages/Templates";
+import Collaboration from "./pages/Collaboration";
+import Analytics from "./pages/Analytics";
+import Repurposing from "./pages/Repurposing";
 
 function Router() {
   return (
@@ -25,6 +28,9 @@ function Router() {
         <Route path="/bulk" component={BulkGeneration} />
         <Route path="/scheduling" component={Scheduling} />
         <Route path="/templates" component={Templates} />
+        <Route path="/collaboration" component={Collaboration} />
+        <Route path="/analytics" component={Analytics} />
+        <Route path="/repurposing" component={Repurposing} />
         <Route path="/reports" component={Reports} />
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />

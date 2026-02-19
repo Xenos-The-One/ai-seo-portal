@@ -103,3 +103,72 @@ export const contentTemplates = mysqlTable("contentTemplates", {
 
 export type ContentTemplate = typeof contentTemplates.$inferSelect;
 export type InsertContentTemplate = typeof contentTemplates.$inferInsert;
+
+
+/**
+ * Content Comments table - stores team feedback and comments on content
+ */
+export const contentComments = mysqlTable("contentComments", {
+  id: int("id").autoincrement().primaryKey(),
+  contentId: int("contentId").notNull().references(() => content.id, { onDelete: "cascade" }),
+  userId: int("userId").notNull().references(() => users.id),
+  comment: text("comment").notNull(),
+  status: mysqlEnum("status", ["pending", "resolved"]).default("pending").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ContentComment = typeof contentComments.$inferSelect;
+export type InsertContentComment = typeof contentComments.$inferInsert;
+
+/**
+ * Content Revisions table - tracks revision history of content
+ */
+export const contentRevisions = mysqlTable("contentRevisions", {
+  id: int("id").autoincrement().primaryKey(),
+  contentId: int("contentId").notNull().references(() => content.id, { onDelete: "cascade" }),
+  userId: int("userId").notNull().references(() => users.id),
+  title: varchar("title", { length: 500 }),
+  content: text("content"),
+  changeDescription: text("changeDescription"),
+  revisionNumber: int("revisionNumber").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type ContentRevision = typeof contentRevisions.$inferSelect;
+export type InsertContentRevision = typeof contentRevisions.$inferInsert;
+
+/**
+ * Content Analytics table - stores performance metrics for published content
+ */
+export const contentAnalytics = mysqlTable("contentAnalytics", {
+  id: int("id").autoincrement().primaryKey(),
+  contentId: int("contentId").notNull().references(() => content.id, { onDelete: "cascade" }),
+  views: int("views").default(0).notNull(),
+  clicks: int("clicks").default(0).notNull(),
+  shares: int("shares").default(0).notNull(),
+  engagementRate: int("engagementRate").default(0).notNull(),
+  avgTimeOnPage: int("avgTimeOnPage").default(0).notNull(),
+  conversions: int("conversions").default(0).notNull(),
+  recordedAt: timestamp("recordedAt").defaultNow().notNull(),
+});
+
+export type ContentAnalytic = typeof contentAnalytics.$inferSelect;
+export type InsertContentAnalytic = typeof contentAnalytics.$inferInsert;
+
+/**
+ * Content Repurposed table - stores repurposed versions of content
+ */
+export const contentRepurposed = mysqlTable("contentRepurposed", {
+  id: int("id").autoincrement().primaryKey(),
+  contentId: int("contentId").notNull().references(() => content.id, { onDelete: "cascade" }),
+  format: mysqlEnum("format", ["social-snippet", "email-summary", "short-form", "infographic-script", "video-script"]).notNull(),
+  content: text("content").notNull(),
+  platform: varchar("platform", { length: 100 }),
+  createdBy: int("createdBy").notNull().references(() => users.id),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ContentRepurposed = typeof contentRepurposed.$inferSelect;
+export type InsertContentRepurposed = typeof contentRepurposed.$inferInsert;

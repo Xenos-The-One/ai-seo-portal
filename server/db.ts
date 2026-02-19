@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, clients, InsertClient, content, InsertContent, contentTemplates, InsertContentTemplate } from "../drizzle/schema";
+import { InsertUser, users, clients, InsertClient, content, InsertContent, contentTemplates, InsertContentTemplate, contentComments, contentRevisions, contentAnalytics, contentRepurposed } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -225,4 +225,94 @@ export async function deleteTemplate(id: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   await db.delete(contentTemplates).where(eq(contentTemplates.id, id));
+}
+
+
+// Collaboration functions
+export async function addComment(data: any) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(contentComments).values(data);
+  return result[0];
+}
+
+export async function getContentComments(contentId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(contentComments)
+    .where(eq(contentComments.contentId, contentId))
+    .orderBy(contentComments.createdAt);
+}
+
+export async function updateCommentStatus(id: number, status: "pending" | "resolved") {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(contentComments).set({ status }).where(eq(contentComments.id, id));
+}
+
+export async function createRevision(data: any) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(contentRevisions).values(data);
+  return result[0];
+}
+
+export async function getContentRevisions(contentId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(contentRevisions)
+    .where(eq(contentRevisions.contentId, contentId))
+    .orderBy(contentRevisions.revisionNumber);
+}
+
+// Analytics functions
+export async function recordAnalytics(data: any) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(contentAnalytics).values(data);
+  return result[0];
+}
+
+export async function getContentAnalytics(contentId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(contentAnalytics)
+    .where(eq(contentAnalytics.contentId, contentId))
+    .orderBy(contentAnalytics.recordedAt);
+}
+
+export async function updateAnalytics(contentId: number, updates: any) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(contentAnalytics).set(updates).where(eq(contentAnalytics.contentId, contentId));
+}
+
+// Repurposing functions
+export async function createRepurposedContent(data: any) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(contentRepurposed).values(data);
+  return result[0];
+}
+
+export async function getRepurposedContent(contentId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(contentRepurposed)
+    .where(eq(contentRepurposed.contentId, contentId))
+    .orderBy(contentRepurposed.createdAt);
+}
+
+export async function deleteRepurposedContent(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(contentRepurposed).where(eq(contentRepurposed.id, id));
 }

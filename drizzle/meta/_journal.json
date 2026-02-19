@@ -29,6 +29,13 @@
       "when": 1771511071018,
       "tag": "0003_sparkling_mauler",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1771511438321,
+      "tag": "0004_fine_frog_thor",
+      "breakpoints": true
     }
   ]
 }

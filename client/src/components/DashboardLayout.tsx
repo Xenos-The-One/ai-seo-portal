@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Users, FileText, BarChart3, Zap, Calendar, Layers } from "lucide-react";
+import { LayoutDashboard, LogOut, PanelLeft, Users, FileText, BarChart3, Zap, Calendar, Layers, MessageSquare, TrendingUp, Copy } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
@@ -34,6 +34,9 @@ const menuItems = [
   { icon: Zap, label: "Bulk Generation", path: "/bulk" },
   { icon: Calendar, label: "Scheduling", path: "/scheduling" },
   { icon: Layers, label: "Templates", path: "/templates" },
+  { icon: MessageSquare, label: "Collaboration", path: "/collaboration" },
+  { icon: TrendingUp, label: "Analytics", path: "/analytics" },
+  { icon: Copy, label: "Repurposing", path: "/repurposing" },
   { icon: BarChart3, label: "Reports", path: "/reports" },
 ];
 
