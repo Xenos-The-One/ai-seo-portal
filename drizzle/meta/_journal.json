@@ -15,6 +15,20 @@
       "when": 1771510078327,
       "tag": "0001_gorgeous_beast",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1771510979813,
+      "tag": "0002_peaceful_paibok",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1771511071018,
+      "tag": "0003_sparkling_mauler",
+      "breakpoints": true
     }
   ]
 }

@@ -10,6 +10,9 @@ import Clients from "./pages/Clients";
 import Content from "./pages/Content";
 import ContentDetail from "./pages/ContentDetail";
 import Reports from "./pages/Reports";
+import BulkGeneration from "./pages/BulkGeneration";
+import Scheduling from "./pages/Scheduling";
+import Templates from "./pages/Templates";
 
 function Router() {
   return (
@@ -19,6 +22,9 @@ function Router() {
         <Route path="/clients" component={Clients} />
         <Route path="/content" component={Content} />
         <Route path="/content/:id" component={ContentDetail} />
+        <Route path="/bulk" component={BulkGeneration} />
+        <Route path="/scheduling" component={Scheduling} />
+        <Route path="/templates" component={Templates} />
         <Route path="/reports" component={Reports} />
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />
@@ -36,7 +42,7 @@ function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider
-        defaultTheme="light"
+        defaultTheme="dark"
         // switchable
       >
         <TooltipProvider>

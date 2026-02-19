@@ -16,6 +16,8 @@ import {
 } from "./db";
 import { invokeLLM } from "./_core/llm";
 import { generateImage } from "./_core/imageGeneration";
+import { bulkRouter } from "./routers/bulk";
+import { templatesRouter } from "./routers/templates";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -215,7 +217,22 @@ export const appRouter = router({
         await deleteContent(input.id);
         return { success: true };
       }),
+    schedule: protectedProcedure
+      .input(z.object({
+        contentId: z.number(),
+        scheduledPublishDate: z.date(),
+      }))
+      .mutation(async ({ input }) => {
+        await updateContent(input.contentId, {
+          scheduledPublishDate: input.scheduledPublishDate,
+          isScheduled: 1,
+        });
+        return { success: true };
+      }),
   }),
+
+  bulk: bulkRouter,
+  templates: templatesRouter,
 
   // TODO: add feature routers here, e.g.
   // todo: router({

@@ -75,9 +75,31 @@ export const content = mysqlTable("content", {
   urlsFailed: int("urlsFailed").default(0).notNull(),
   webSearches: int("webSearches").default(0).notNull(),
   
+  // Scheduling
+  scheduledPublishDate: timestamp("scheduledPublishDate"),
+  isScheduled: int("isScheduled").default(0).notNull(), // 0 = false, 1 = true
+  
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
 export type Content = typeof content.$inferSelect;
 export type InsertContent = typeof content.$inferInsert;
+/**
+ * Content Templates table - stores reusable templates for different content types
+ */
+export const contentTemplates = mysqlTable("contentTemplates", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  type: mysqlEnum("type", ["how-to", "listicle", "case-study", "guide", "news", "custom"]).notNull(),
+  prompt: text("prompt").notNull(),
+  structure: text("structure"),
+  createdBy: int("createdBy").notNull().references(() => users.id),
+  isPublic: int("isPublic").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ContentTemplate = typeof contentTemplates.$inferSelect;
+export type InsertContentTemplate = typeof contentTemplates.$inferInsert;

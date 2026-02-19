@@ -36,4 +36,11 @@
 ## Testing & Deployment
 - [x] Write vitest tests for core functionality
 - [x] Test complete workflow end-to-end
-- [ ] Create checkpoint for deployment
+- [x] Create checkpoint for deployment
+
+
+## New Features (Follow-up)
+- [x] Dark theme with black background
+- [x] Bulk content generation (multiple topics at once)
+- [x] Content scheduling with calendar view
+- [x] Content templates for different content types

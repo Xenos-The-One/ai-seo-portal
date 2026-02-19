@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, clients, InsertClient, content, InsertContent } from "../drizzle/schema";
+import { InsertUser, users, clients, InsertClient, content, InsertContent, contentTemplates, InsertContentTemplate } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -173,4 +173,56 @@ export async function getContentWithClient(userId: number) {
     .leftJoin(clients, eq(content.clientId, clients.id))
     .where(eq(content.createdBy, userId))
     .orderBy(content.createdAt);
+}
+
+
+// Template functions
+export async function createTemplate(data: any) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(contentTemplates).values(data);
+  return result[0];
+}
+
+export async function getTemplatesByUser(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(contentTemplates)
+    .where(eq(contentTemplates.createdBy, userId))
+    .orderBy(contentTemplates.createdAt);
+}
+
+export async function getPublicTemplates() {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(contentTemplates)
+    .where(eq(contentTemplates.isPublic, 1))
+    .orderBy(contentTemplates.createdAt);
+}
+
+export async function getTemplateById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db
+    .select()
+    .from(contentTemplates)
+    .where(eq(contentTemplates.id, id))
+    .limit(1);
+  return result[0] || null;
+}
+
+export async function updateTemplate(id: number, updates: any) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(contentTemplates).set(updates).where(eq(contentTemplates.id, id));
+}
+
+export async function deleteTemplate(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(contentTemplates).where(eq(contentTemplates.id, id));
 }
