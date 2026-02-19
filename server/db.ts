@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, users, clients, InsertClient, content, InsertContent } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -89,4 +89,88 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+// Client management queries
+export async function createClient(client: InsertClient) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(clients).values(client);
+  return result[0].insertId;
+}
+
+export async function getClientsByUser(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(clients).where(eq(clients.createdBy, userId));
+}
+
+export async function getClientById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(clients).where(eq(clients.id, id)).limit(1);
+  return result[0];
+}
+
+export async function updateClient(id: number, updates: Partial<InsertClient>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(clients).set({ ...updates, updatedAt: new Date() }).where(eq(clients.id, id));
+}
+
+export async function deleteClient(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(clients).where(eq(clients.id, id));
+}
+
+// Content management queries
+export async function createContent(contentData: InsertContent) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(content).values(contentData);
+  return result[0].insertId;
+}
+
+export async function getContentByUser(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(content).where(eq(content.createdBy, userId)).orderBy(content.createdAt);
+}
+
+export async function getContentById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(content).where(eq(content.id, id)).limit(1);
+  return result[0];
+}
+
+export async function updateContent(id: number, updates: Partial<InsertContent>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(content).set({ ...updates, updatedAt: new Date() }).where(eq(content.id, id));
+}
+
+export async function deleteContent(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(content).where(eq(content.id, id));
+}
+
+export async function getContentByClient(clientId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(content).where(eq(content.clientId, clientId)).orderBy(content.createdAt);
+}
+
+export async function getContentWithClient(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select({
+      content: content,
+      client: clients,
+    })
+    .from(content)
+    .leftJoin(clients, eq(content.clientId, clients.id))
+    .where(eq(content.createdBy, userId))
+    .orderBy(content.createdAt);
+}

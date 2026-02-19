@@ -1,7 +1,21 @@
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, router } from "./_core/trpc";
+import { publicProcedure, router, protectedProcedure } from "./_core/trpc";
+import { z } from "zod";
+import { 
+  getClientsByUser, 
+  createClient, 
+  updateClient, 
+  deleteClient,
+  getContentWithClient,
+  getContentById,
+  createContent,
+  updateContent,
+  deleteContent
+} from "./db";
+import { invokeLLM } from "./_core/llm";
+import { generateImage } from "./_core/imageGeneration";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -15,6 +29,192 @@ export const appRouter = router({
         success: true,
       } as const;
     }),
+  }),
+
+  // Client management
+  clients: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      return getClientsByUser(ctx.user.id);
+    }),
+    create: protectedProcedure
+      .input(z.object({
+        name: z.string().min(1),
+        email: z.string().email().optional(),
+        company: z.string().optional(),
+        notes: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const clientId = await createClient({
+          ...input,
+          createdBy: ctx.user.id,
+        });
+        return { id: clientId };
+      }),
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        name: z.string().min(1).optional(),
+        email: z.string().email().optional(),
+        company: z.string().optional(),
+        notes: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { id, ...updates } = input;
+        await updateClient(id, updates);
+        return { success: true };
+      }),
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await deleteClient(input.id);
+        return { success: true };
+      }),
+  }),
+
+  // Content management and generation
+  content: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      return getContentWithClient(ctx.user.id);
+    }),
+    getById: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        return getContentById(input.id);
+      }),
+    generate: protectedProcedure
+      .input(z.object({
+        clientId: z.number(),
+        topic: z.string().min(1),
+        customPrompt: z.string().optional(),
+        shouldGenerateImage: z.boolean().default(true),
+        enableWebResearch: z.boolean().default(true),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { clientId, topic, customPrompt, shouldGenerateImage, enableWebResearch } = input;
+        
+        // Initialize tracking variables
+        let inputTokens = 0;
+        let outputTokens = 0;
+        let urlsFetched = 0;
+        let urlsFailed = 0;
+        let webSearches = 0;
+        let researchContext = "";
+
+        // Perform web research if enabled
+        if (enableWebResearch) {
+          try {
+            // Use axios to call the omni_search API for web research
+            const axios = (await import("axios")).default;
+            const searchResponse = await axios.post(
+              `${process.env.BUILT_IN_FORGE_API_URL}/omni_search`,
+              {
+                query: topic,
+                search_type: "info",
+                max_results: 5,
+              },
+              {
+                headers: {
+                  Authorization: `Bearer ${process.env.BUILT_IN_FORGE_API_KEY}`,
+                  "Content-Type": "application/json",
+                },
+              }
+            );
+
+            if (searchResponse.data?.results) {
+              webSearches = 1;
+              const results = searchResponse.data.results;
+              
+              // Fetch content from URLs
+              for (const result of results.slice(0, 3)) {
+                try {
+                  const urlResponse = await axios.get(result.url, { timeout: 5000 });
+                  urlsFetched++;
+                  researchContext += `\n\nSource: ${result.title}\n${result.snippet || ""}\n`;
+                } catch {
+                  urlsFailed++;
+                }
+              }
+            }
+          } catch (error) {
+            console.error("Web research failed:", error);
+          }
+        }
+
+        // Generate blog content with AI
+        const systemPrompt = customPrompt || "You are an expert SEO content writer. Create engaging, well-structured blog posts that are informative and optimized for search engines.";
+        const userPrompt = `Write a comprehensive blog post about: ${topic}${researchContext ? `\n\nUse this research context:\n${researchContext}` : ""}`;
+
+        const llmResponse = await invokeLLM({
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
+          ],
+        });
+
+        const messageContent = llmResponse.choices[0]?.message?.content;
+        const generatedContent = typeof messageContent === 'string' ? messageContent : "";
+        inputTokens = llmResponse.usage?.prompt_tokens || 0;
+        outputTokens = llmResponse.usage?.completion_tokens || 0;
+
+        // Extract title from content (first line or generate one)
+        const lines = generatedContent.split("\n").filter(l => l.trim());
+        const title = lines[0]?.replace(/^#\s*/, "").substring(0, 500) || topic;
+
+        // Generate featured image if requested
+        let imageUrl = "";
+        let imagePrompt = "";
+        if (shouldGenerateImage) {
+          try {
+            imagePrompt = `Professional blog header image for: ${topic}`;
+            const imageResult = await generateImage({ prompt: imagePrompt });
+            imageUrl = imageResult.url || "";
+          } catch (error) {
+            console.error("Image generation failed:", error);
+          }
+        }
+
+        // Save content to database
+        const contentId = await createContent({
+          clientId,
+          createdBy: ctx.user.id,
+          title,
+          topic,
+          content: generatedContent,
+          imageUrl,
+          imagePrompt,
+          status: "draft",
+          progress: 75,
+          aiModel: "gpt-4o",
+          customPrompt: customPrompt || null,
+          inputTokens,
+          outputTokens,
+          totalTokens: inputTokens + outputTokens,
+          urlsFetched,
+          urlsFailed,
+          webSearches,
+        });
+
+        return { id: contentId, title, content: generatedContent, imageUrl };
+      }),
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        title: z.string().optional(),
+        content: z.string().optional(),
+        status: z.enum(["draft", "in_progress", "approved"]).optional(),
+        progress: z.number().min(0).max(100).optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { id, ...updates } = input;
+        await updateContent(id, updates);
+        return { success: true };
+      }),
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await deleteContent(input.id);
+        return { success: true };
+      }),
   }),
 
   // TODO: add feature routers here, e.g.
