@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Users, FileText, BarChart3, Zap, Calendar, Layers, MessageSquare, TrendingUp, Copy, GitBranch, Sparkles, Webhook, ClipboardList, Shield, Bell, Search } from "lucide-react";
+import { LayoutDashboard, LogOut, PanelLeft, Users, FileText, BarChart3, Zap, Calendar, Layers, MessageSquare, TrendingUp, Copy, GitBranch, Sparkles, Webhook, ClipboardList, Shield, Bell, Search, Settings, UserPlus } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
@@ -30,6 +30,7 @@ import { Button } from "./ui/button";
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/" },
   { icon: Users, label: "Clients", path: "/clients" },
+  { icon: UserPlus, label: "Client Onboarding", path: "/onboarding" },
   { icon: FileText, label: "Content", path: "/content" },
   { icon: Zap, label: "Bulk Generation", path: "/bulk" },
   { icon: Calendar, label: "Scheduling", path: "/scheduling" },
@@ -45,6 +46,7 @@ const menuItems = [
   { icon: Bell, label: "Notifications", path: "/notifications" },
   { icon: Shield, label: "Client Portal", path: "/client-portal" },
   { icon: BarChart3, label: "Reports", path: "/reports" },
+  { icon: Settings, label: "Settings", path: "/settings" },
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";

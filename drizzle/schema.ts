@@ -293,3 +293,15 @@ export const contentBriefs = mysqlTable("contentBriefs", {
 
 export type ContentBrief = typeof contentBriefs.$inferSelect;
 export type InsertContentBrief = typeof contentBriefs.$inferInsert;
+
+/**
+ * Agency settings table - stores branding and configuration
+ */
+export const agencySettings = mysqlTable("agency_settings", {
+  id: int("id").autoincrement().primaryKey(),
+  settingKey: varchar("settingKey", { length: 128 }).notNull().unique(),
+  settingValue: text("settingValue"),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type AgencySetting = typeof agencySettings.$inferSelect;

@@ -71,3 +71,9 @@
 - [x] Email notifications (content ready for review, brief submitted, content approved)
 - [x] Drag-and-drop content calendar
 - [x] Content SEO audit tool (keyword analysis, heading structure, meta descriptions)
+
+## Round 6 Follow-up Features
+- [x] Move preview section above edit section on ContentDetail page
+- [x] Agency branding settings page (logo, name, default prompt templates)
+- [x] Content export to PDF/Word format
+- [x] Client onboarding wizard (step-by-step flow for adding new clients)

@@ -27,6 +27,7 @@ import { webhooksRouter } from "./routers/webhooks";
 import { briefsRouter } from "./routers/briefs";
 import { notificationsRouter } from "./routers/notifications";
 import { seoAuditRouter } from "./routers/seoAudit";
+import { agencySettingsRouter } from "./routers/agencySettings";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -277,6 +278,21 @@ export const appRouter = router({
         await deleteContent(input.id);
         return { success: true };
       }),
+    exportHtml: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        const content = await getContentById(input.id);
+        if (!content) throw new Error("Content not found");
+        return {
+          title: content.title,
+          content: content.content,
+          imageUrl: content.imageUrl,
+          topic: content.topic,
+          status: content.status,
+          aiModel: content.aiModel,
+          createdAt: content.createdAt,
+        };
+      }),
     schedule: protectedProcedure
       .input(z.object({
         contentId: z.number(),
@@ -301,6 +317,7 @@ export const appRouter = router({
   briefs: briefsRouter,
   notifications: notificationsRouter,
   seoAudit: seoAuditRouter,
+  agencySettings: agencySettingsRouter,
 
   // TODO: add feature routers here, e.g.
   // todo: router({

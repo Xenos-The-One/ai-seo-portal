@@ -25,6 +25,8 @@ import Publishing from "./pages/Publishing";
 import Briefs from "./pages/Briefs";
 import BriefForm from "./pages/BriefForm";
 import Notifications from "./pages/Notifications";
+import Settings from "./pages/Settings";
+import ClientOnboarding from "./pages/ClientOnboarding";
 
 function DashboardRouter() {
   return (
@@ -49,6 +51,8 @@ function DashboardRouter() {
         <Route path="/notifications" component={Notifications} />
         <Route path="/client-portal" component={ClientPortal} />
         <Route path="/reports" component={Reports} />
+        <Route path="/settings" component={Settings} />
+        <Route path="/onboarding" component={ClientOnboarding} />
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />
       </Switch>
