@@ -27,6 +27,7 @@ import BriefForm from "./pages/BriefForm";
 import Notifications from "./pages/Notifications";
 import Settings from "./pages/Settings";
 import ClientOnboarding from "./pages/ClientOnboarding";
+import CommandPalette from "./components/CommandPalette";
 
 function DashboardRouter() {
   return (
@@ -79,6 +80,7 @@ function App() {
       >
         <TooltipProvider>
           <Toaster />
+          <CommandPalette />
           <Router />
         </TooltipProvider>
       </ThemeProvider>

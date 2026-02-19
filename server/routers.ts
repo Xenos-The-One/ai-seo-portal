@@ -267,8 +267,30 @@ export const appRouter = router({
         status: z.enum(["draft", "in_progress", "approved"]).optional(),
         progress: z.number().min(0).max(100).optional(),
       }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ ctx, input }) => {
         const { id, ...updates } = input;
+        
+        // Check if status is changing to approved
+        if (updates.status === "approved") {
+          const contentData = await getContentById(id);
+          if (contentData && contentData.status !== "approved") {
+            // Send approval notification to owner
+            try {
+              const { notifyOwner } = await import("./_core/notification");
+              const contentPreview = contentData.content
+                ? contentData.content.replace(/[#*\[\]()_`>-]/g, "").substring(0, 500)
+                : "No content preview available";
+              
+              await notifyOwner({
+                title: `Content Approved: ${contentData.title}`,
+                content: `The blog post "${contentData.title}" has been approved by ${ctx.user.name || ctx.user.email || "a team member"}.\n\nTopic: ${contentData.topic || "N/A"}\n\nPreview:\n${contentPreview}...\n\nYou can now publish this content to the client's CMS via the Publishing page.`,
+              });
+            } catch (e) {
+              console.error("Failed to send approval notification:", e);
+            }
+          }
+        }
+        
         await updateContent(id, updates);
         return { success: true };
       }),

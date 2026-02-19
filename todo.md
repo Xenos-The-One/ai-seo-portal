@@ -77,3 +77,9 @@
 - [x] Agency branding settings page (logo, name, default prompt templates)
 - [x] Content export to PDF/Word format
 - [x] Client onboarding wizard (step-by-step flow for adding new clients)
+
+## Round 7 Follow-up Features
+- [x] Enhanced publishing with platform-specific API formats (WordPress REST API, Ghost Admin API, Webflow CMS API)
+- [x] Global search/command palette (Ctrl+K) for searching clients, content, templates, briefs
+- [x] Content approval email workflow (auto-send formatted preview on approval)
+- [x] Customizable dashboard widget system with drag-and-drop reordering

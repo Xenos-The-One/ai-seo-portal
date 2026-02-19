@@ -196,6 +196,20 @@ function DashboardLayoutContent({
           </SidebarHeader>
 
           <SidebarContent className="gap-0">
+            {/* Search Button */}
+            <div className="px-3 py-2">
+              <button
+                onClick={() => {
+                  const event = new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true });
+                  document.dispatchEvent(event);
+                }}
+                className="flex items-center gap-2 w-full px-3 py-2 text-sm text-muted-foreground bg-muted/30 border border-border/50 rounded-lg hover:bg-muted/50 transition-colors group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-2"
+              >
+                <Search className="h-4 w-4 shrink-0" />
+                <span className="group-data-[collapsible=icon]:hidden flex-1 text-left">Search...</span>
+                <kbd className="group-data-[collapsible=icon]:hidden text-[10px] px-1.5 py-0.5 bg-muted rounded border border-border/50">⌘K</kbd>
+              </button>
+            </div>
             <SidebarMenu className="px-2 py-1">
               {menuItems.map(item => {
                 const isActive = location === item.path;
