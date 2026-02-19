@@ -18,6 +18,7 @@ export default function Reports() {
   };
 
   const clientContentCounts = clients?.map(client => ({
+    id: client.id,
     name: client.name,
     count: contentList?.filter(item => item.content.clientId === client.id).length || 0,
   })) || [];
@@ -126,7 +127,7 @@ export default function Reports() {
             {topClients.length > 0 ? (
               <div className="space-y-4">
                 {topClients.map((client, index) => (
-                  <div key={client.name} className="flex items-center justify-between">
+                  <div key={client.id} className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <span className="text-sm font-medium text-muted-foreground w-6">
                         #{index + 1}

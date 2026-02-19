@@ -50,3 +50,7 @@
 - [x] Content collaboration (comments, revisions, team feedback)
 - [x] Advanced analytics dashboard (performance metrics, token usage trends)
 - [x] Content repurposing tools (social media snippets, email summaries, alternative formats)
+
+
+## Bug Fixes
+- [x] Fix duplicate key error in Reports page (use IDs instead of names)
