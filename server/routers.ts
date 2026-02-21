@@ -121,6 +121,8 @@ export const appRouter = router({
         socialInstagram: z.string().optional(),
         socialLinkedin: z.string().optional(),
         socialTwitter: z.string().optional(),
+        monthlyBudget: z.string().optional(),
+        budgetAlertThreshold: z.number().min(0).max(100).optional(),
       }))
       .mutation(async ({ input }) => {
         const { id, ...updates } = input;
@@ -132,6 +134,35 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         await deleteClient(input.id);
         return { success: true };
+      }),
+    getMonthlyCost: protectedProcedure
+      .input(z.object({ clientId: z.number() }))
+      .query(async ({ input }) => {
+        const { getClientMonthlyCost } = await import("./budgetTracking");
+        return { cost: await getClientMonthlyCost(input.clientId) };
+      }),
+    getBudgetStatus: protectedProcedure
+      .input(z.object({ clientId: z.number() }))
+      .query(async ({ input }) => {
+        const { checkClientBudgetAlert } = await import("./budgetTracking");
+        return await checkClientBudgetAlert(input.clientId);
+      }),
+  }),
+
+  // Model performance tracking
+  modelPerformance: router({
+    getMetrics: protectedProcedure.query(async () => {
+      const { getModelPerformanceMetrics } = await import("./modelPerformance");
+      return await getModelPerformanceMetrics();
+    }),
+    compareModels: protectedProcedure
+      .input(z.object({
+        model1: z.string(),
+        model2: z.string(),
+      }))
+      .query(async ({ input }) => {
+        const { compareModels } = await import("./modelPerformance");
+        return await compareModels(input.model1, input.model2);
       }),
   }),
 
@@ -170,6 +201,9 @@ export const appRouter = router({
         let urlsFailed = 0;
         let webSearches = 0;
         let researchContext = "";
+
+        // Track generation start time
+        const generationStartTime = Date.now();
 
         // Perform web research if enabled
         if (enableWebResearch) {
@@ -245,6 +279,11 @@ export const appRouter = router({
           }
         }
 
+        // Calculate performance metrics
+        const { calculateWordCount } = await import("./modelPerformance");
+        const wordCount = calculateWordCount(generatedContent);
+        const generationTimeMs = Date.now() - generationStartTime;
+
         // Save content to database
         const contentId = await createContent({
           clientId,
@@ -264,7 +303,17 @@ export const appRouter = router({
           urlsFetched,
           urlsFailed,
           webSearches,
+          wordCount,
+          generationTimeMs,
         });
+
+        // Check budget and send alert if needed
+        try {
+          const { checkAndAlertAfterGeneration } = await import("./budgetTracking");
+          await checkAndAlertAfterGeneration(clientId);
+        } catch (error) {
+          console.error("Budget check failed:", error);
+        }
 
         return { id: contentId, title, content: generatedContent, imageUrl };
       }),
@@ -283,6 +332,14 @@ export const appRouter = router({
         if (updates.status === "approved") {
           const contentData = await getContentById(id);
           if (contentData && contentData.status !== "approved") {
+            // Update performance tracking
+            const { calculateWordCount } = await import("./modelPerformance");
+            const wordCount = calculateWordCount(contentData.content || "");
+            await updateContent(id, {
+              wasApproved: 1,
+              approvedAt: new Date(),
+              wordCount,
+            });
             // Send approval notification to owner
             try {
               const { notifyOwner } = await import("./_core/notification");
@@ -308,6 +365,139 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         await deleteContent(input.id);
         return { success: true };
+      }),
+    regenerate: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        aiModel: z.string(),
+        customPrompt: z.string().optional(),
+        shouldGenerateImage: z.boolean().default(false),
+        enableWebResearch: z.boolean().default(false),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { id, aiModel, customPrompt, shouldGenerateImage, enableWebResearch } = input;
+        
+        // Get original content
+        const originalContent = await getContentById(id);
+        if (!originalContent) {
+          throw new Error("Content not found");
+        }
+
+        // Track generation start time
+        const generationStartTime = Date.now();
+        let inputTokens = 0;
+        let outputTokens = 0;
+        let urlsFetched = 0;
+        let urlsFailed = 0;
+        let webSearches = 0;
+        let researchContext = "";
+
+        // Perform web research if enabled
+        if (enableWebResearch) {
+          try {
+            const axios = (await import("axios")).default;
+            const searchResponse = await axios.post(
+              `${process.env.BUILT_IN_FORGE_API_URL}/omni_search`,
+              {
+                query: originalContent.topic,
+                search_type: "info",
+                max_results: 5,
+              },
+              {
+                headers: {
+                  Authorization: `Bearer ${process.env.BUILT_IN_FORGE_API_KEY}`,
+                  "Content-Type": "application/json",
+                },
+              }
+            );
+
+            if (searchResponse.data?.results) {
+              webSearches = 1;
+              const results = searchResponse.data.results;
+              for (const result of results.slice(0, 3)) {
+                try {
+                  const urlResponse = await axios.get(result.url, { timeout: 5000 });
+                  urlsFetched++;
+                  researchContext += `\n\nSource: ${result.title}\n${result.snippet || ""}\n`;
+                } catch {
+                  urlsFailed++;
+                }
+              }
+            }
+          } catch (error) {
+            console.error("Web research failed:", error);
+          }
+        }
+
+        // Generate new content with AI
+        const systemPrompt = customPrompt || "You are an expert SEO content writer. Create engaging, well-structured blog posts that are informative and optimized for search engines.";
+        const userPrompt = `Write a comprehensive blog post about: ${originalContent.topic}${researchContext ? `\n\nUse this research context:\n${researchContext}` : ""}`;        
+
+        const llmResponse = await invokeLLM({
+          model: aiModel,
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
+          ],
+        });
+
+        const messageContent = llmResponse.choices[0]?.message?.content;
+        const generatedContent = typeof messageContent === 'string' ? messageContent : "";
+        inputTokens = llmResponse.usage?.prompt_tokens || 0;
+        outputTokens = llmResponse.usage?.completion_tokens || 0;
+
+        // Extract title from content
+        const lines = generatedContent.split("\n").filter(l => l.trim());
+        const title = lines[0]?.replace(/^#\s*/, "").substring(0, 500) || originalContent.topic;
+
+        // Generate featured image if requested
+        let imageUrl = originalContent.imageUrl || "";
+        let imagePrompt = originalContent.imagePrompt || "";
+        if (shouldGenerateImage) {
+          try {
+            imagePrompt = `Professional blog header image for: ${originalContent.topic}`;
+            const imageResult = await generateImage({ prompt: imagePrompt });
+            imageUrl = imageResult.url || "";
+          } catch (error) {
+            console.error("Image generation failed:", error);
+          }
+        }
+
+        // Calculate performance metrics
+        const { calculateWordCount } = await import("./modelPerformance");
+        const wordCount = calculateWordCount(generatedContent);
+        const generationTimeMs = Date.now() - generationStartTime;
+
+        // Update content with regenerated version
+        await updateContent(id, {
+          title,
+          content: generatedContent,
+          imageUrl,
+          imagePrompt,
+          aiModel,
+          customPrompt: customPrompt || null,
+          inputTokens,
+          outputTokens,
+          totalTokens: inputTokens + outputTokens,
+          urlsFetched,
+          urlsFailed,
+          webSearches,
+          wordCount,
+          generationTimeMs,
+          status: "draft",
+          wasApproved: 0,
+          approvedAt: null,
+        });
+
+        // Check budget and send alert if needed
+        try {
+          const { checkAndAlertAfterGeneration } = await import("./budgetTracking");
+          await checkAndAlertAfterGeneration(originalContent.clientId);
+        } catch (error) {
+          console.error("Budget check failed:", error);
+        }
+
+        return { id, title, content: generatedContent, imageUrl };
       }),
     exportHtml: protectedProcedure
       .input(z.object({ id: z.number() }))

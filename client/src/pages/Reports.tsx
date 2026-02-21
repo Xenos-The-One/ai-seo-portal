@@ -273,6 +273,96 @@ export default function Reports() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Model Performance Comparison */}
+      <ModelPerformanceSection />
+    </div>
+  );
+}
+
+// Model Performance Comparison Component
+function ModelPerformanceSection() {
+  const { data: metrics } = trpc.modelPerformance.getMetrics.useQuery();
+
+  if (!metrics || metrics.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="mt-8">
+      <h2 className="text-2xl font-bold mb-4">Model Performance Comparison</h2>
+      <div className="grid grid-cols-1 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Cpu className="h-5 w-5" />
+              AI Model Performance Metrics
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-border/50">
+                    <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Model</th>
+                    <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Total</th>
+                    <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Approved</th>
+                    <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Approval Rate</th>
+                    <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Avg Words</th>
+                    <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Avg Time</th>
+                    <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Total Cost</th>
+                    <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Cost/Content</th>
+                    <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Cost/Approval</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {metrics.map((metric) => (
+                    <tr key={metric.model} className="border-b border-border/30 hover:bg-muted/20">
+                      <td className="py-3 px-4">
+                        <div>
+                          <p className="font-medium">{metric.modelName}</p>
+                          <p className="text-xs text-muted-foreground">{metric.model}</p>
+                        </div>
+                      </td>
+                      <td className="text-right py-3 px-4 font-medium">{metric.totalContent}</td>
+                      <td className="text-right py-3 px-4">{metric.approvedContent}</td>
+                      <td className="text-right py-3 px-4">
+                        <span
+                          className={`font-medium ${
+                            metric.approvalRate >= 80
+                              ? "text-green-400"
+                              : metric.approvalRate >= 50
+                              ? "text-yellow-400"
+                              : "text-red-400"
+                          }`}
+                        >
+                          {metric.approvalRate.toFixed(1)}%
+                        </span>
+                      </td>
+                      <td className="text-right py-3 px-4">{Math.round(metric.avgWordCount)}</td>
+                      <td className="text-right py-3 px-4">{(metric.avgGenerationTime / 1000).toFixed(1)}s</td>
+                      <td className="text-right py-3 px-4">${metric.totalCost.toFixed(2)}</td>
+                      <td className="text-right py-3 px-4">${metric.avgCostPerContent.toFixed(4)}</td>
+                      <td className="text-right py-3 px-4">
+                        {metric.approvedContent > 0 ? `$${metric.costPerApproval.toFixed(4)}` : "N/A"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="mt-6 p-4 rounded-lg bg-muted/30">
+              <h4 className="font-medium mb-2">Key Insights</h4>
+              <ul className="space-y-1 text-sm text-muted-foreground">
+                <li>• <strong>Approval Rate:</strong> Higher is better - indicates content quality and client satisfaction</li>
+                <li>• <strong>Cost/Approval:</strong> Lower is better - measures ROI per approved content piece</li>
+                <li>• <strong>Avg Words:</strong> Longer content may rank better for SEO but costs more</li>
+                <li>• <strong>Avg Time:</strong> Faster generation allows higher throughput</li>
+              </ul>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

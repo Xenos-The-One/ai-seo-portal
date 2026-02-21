@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, decimal } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -36,7 +36,11 @@ export const clients = mysqlTable("clients", {
   notes: text("notes"),
   createdBy: int("createdBy").notNull().references(() => users.id),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+
+  // Budget tracking
+  monthlyBudget: decimal("monthlyBudget", { precision: 10, scale: 2 }).default("0.00"),
+  budgetAlertThreshold: int("budgetAlertThreshold").default(80), // Percentage (0-100)
 
   // Personal contact info
   phone: varchar("phone", { length: 50 }),
@@ -109,6 +113,12 @@ export const content = mysqlTable("content", {
   // Scheduling
   scheduledPublishDate: timestamp("scheduledPublishDate"),
   isScheduled: int("isScheduled").default(0).notNull(), // 0 = false, 1 = true
+  
+  // Performance tracking
+  wordCount: int("wordCount").default(0).notNull(),
+  wasApproved: int("wasApproved").default(0).notNull(), // 0 = not yet, 1 = yes
+  approvedAt: timestamp("approvedAt"),
+  generationTimeMs: int("generationTimeMs").default(0).notNull(),
   
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

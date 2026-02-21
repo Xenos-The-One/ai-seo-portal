@@ -26,6 +26,8 @@ import {
   EyeOff,
   ExternalLink,
   FileText,
+  DollarSign,
+  AlertCircle,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useParams, useLocation } from "wouter";
@@ -203,6 +205,10 @@ export default function ClientDetail() {
           <TabsTrigger value="content" className="gap-2">
             <FileText className="h-4 w-4" />
             Content
+          </TabsTrigger>
+          <TabsTrigger value="budget" className="gap-2">
+            <DollarSign className="h-4 w-4" />
+            Budget
           </TabsTrigger>
         </TabsList>
 
@@ -479,7 +485,172 @@ export default function ClientDetail() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* Budget Tab */}
+        <TabsContent value="budget">
+          <BudgetTab clientId={clientId} clientName={client.name} />
+        </TabsContent>
       </Tabs>
+    </div>
+  );
+}
+
+// Budget Tab Component
+function BudgetTab({ clientId, clientName }: { clientId: number; clientName: string }) {
+  const [monthlyBudget, setMonthlyBudget] = useState("");
+  const [alertThreshold, setAlertThreshold] = useState(80);
+  
+  const { data: client, refetch } = trpc.clients.getById.useQuery({ id: clientId });
+  const { data: budgetStatus } = trpc.clients.getBudgetStatus.useQuery(
+    { clientId },
+    { refetchInterval: 30000 } // Refresh every 30 seconds
+  );
+  const updateMutation = trpc.clients.update.useMutation();
+
+  useEffect(() => {
+    if (client) {
+      setMonthlyBudget(client.monthlyBudget || "0.00");
+      setAlertThreshold(client.budgetAlertThreshold || 80);
+    }
+  }, [client]);
+
+  const handleSaveBudget = async () => {
+    try {
+      await updateMutation.mutateAsync({
+        id: clientId,
+        monthlyBudget,
+        budgetAlertThreshold: alertThreshold,
+      });
+      toast.success("Budget settings saved");
+      refetch();
+    } catch {
+      toast.error("Failed to save budget settings");
+    }
+  };
+
+  const currentCost = budgetStatus?.currentCost || 0;
+  const budget = budgetStatus?.budget || parseFloat(monthlyBudget) || 0;
+  const percentage = budget > 0 ? (currentCost / budget) * 100 : 0;
+  const isOverBudget = percentage > 100;
+  const isNearThreshold = percentage >= alertThreshold && !isOverBudget;
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <DollarSign className="h-5 w-5" />
+            Budget Settings for {clientName}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <Label htmlFor="monthlyBudget">Monthly Budget (USD)</Label>
+              <Input
+                id="monthlyBudget"
+                type="number"
+                step="0.01"
+                min="0"
+                value={monthlyBudget}
+                onChange={(e) => setMonthlyBudget(e.target.value)}
+                placeholder="0.00"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Set to 0 to disable budget tracking
+              </p>
+            </div>
+            <div>
+              <Label htmlFor="alertThreshold">Alert Threshold (%)</Label>
+              <Input
+                id="alertThreshold"
+                type="number"
+                min="0"
+                max="100"
+                value={alertThreshold}
+                onChange={(e) => setAlertThreshold(parseInt(e.target.value))}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Receive notification when spending reaches this percentage
+              </p>
+            </div>
+          </div>
+          <Button onClick={handleSaveBudget} disabled={updateMutation.isPending}>
+            {updateMutation.isPending ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Save className="h-4 w-4 mr-2" />
+            )}
+            Save Budget Settings
+          </Button>
+        </CardContent>
+      </Card>
+
+      {budget > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5" />
+              Current Month Usage
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Current Spend</span>
+              <span className="text-2xl font-bold">${currentCost.toFixed(2)}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Monthly Budget</span>
+              <span className="text-lg font-medium">${budget.toFixed(2)}</span>
+            </div>
+            <Separator />
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium">Budget Usage</span>
+                <span
+                  className={`text-sm font-bold ${
+                    isOverBudget
+                      ? "text-red-400"
+                      : isNearThreshold
+                      ? "text-yellow-400"
+                      : "text-green-400"
+                  }`}
+                >
+                  {percentage.toFixed(1)}%
+                </span>
+              </div>
+              <div className="h-4 bg-muted rounded-full overflow-hidden">
+                <div
+                  className={`h-full transition-all ${
+                    isOverBudget
+                      ? "bg-red-500"
+                      : isNearThreshold
+                      ? "bg-yellow-500"
+                      : "bg-green-500"
+                  }`}
+                  style={{ width: `${Math.min(percentage, 100)}%` }}
+                />
+              </div>
+            </div>
+            {isOverBudget && (
+              <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20">
+                <p className="text-sm text-red-400 flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4" />
+                  Budget exceeded! Consider adjusting the budget or reducing content generation.
+                </p>
+              </div>
+            )}
+            {isNearThreshold && !isOverBudget && (
+              <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+                <p className="text-sm text-yellow-400 flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4" />
+                  Approaching budget threshold. You'll receive a notification if spending continues.
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

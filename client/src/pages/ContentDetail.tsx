@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, Save, Download, Loader2, Eye, Pencil, FileText, FileType } from "lucide-react";
+import { ArrowLeft, Save, Download, Loader2, Eye, Pencil, FileText, FileType, RefreshCw } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -279,6 +279,7 @@ export default function ContentDetail() {
                       )}
                       Save Changes
                     </Button>
+                    <RegenerateButton contentId={contentId} onSuccess={refetch} />
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="outline">
@@ -428,5 +429,110 @@ export default function ContentDetail() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Regenerate Button Component
+function RegenerateButton({ contentId, onSuccess }: { contentId: number; onSuccess: () => void }) {
+  const [showDialog, setShowDialog] = useState(false);
+  const [aiModel, setAiModel] = useState("gemini-2.5-flash");
+  const [enableWebResearch, setEnableWebResearch] = useState(false);
+  const [shouldGenerateImage, setShouldGenerateImage] = useState(false);
+  
+  const regenerateMutation = trpc.content.regenerate.useMutation();
+
+  const handleRegenerate = async () => {
+    try {
+      await regenerateMutation.mutateAsync({
+        id: contentId,
+        aiModel,
+        enableWebResearch,
+        shouldGenerateImage,
+      });
+      toast.success("Content regenerated successfully!");
+      setShowDialog(false);
+      onSuccess();
+    } catch {
+      toast.error("Failed to regenerate content");
+    }
+  };
+
+  return (
+    <>
+      <Button variant="outline" onClick={() => setShowDialog(true)}>
+        <RefreshCw className="h-4 w-4 mr-2" />
+        Regenerate
+      </Button>
+      
+      {showDialog && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <CardTitle>Regenerate Content</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="regenerate-model">AI Model</Label>
+                <Select value={aiModel} onValueChange={setAiModel}>
+                  <SelectTrigger id="regenerate-model">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet (High Quality)</SelectItem>
+                    <SelectItem value="claude-3-5-haiku-20241022">Claude 3.5 Haiku (Balanced)</SelectItem>
+                    <SelectItem value="gpt-4o">GPT-4o (High Quality)</SelectItem>
+                    <SelectItem value="gpt-4o-mini">GPT-4o Mini (Fast)</SelectItem>
+                    <SelectItem value="gemini-2.5-flash">Gemini 2.5 Flash (Cost-Effective)</SelectItem>
+                    <SelectItem value="gemini-2.5-pro">Gemini 2.5 Pro (Advanced)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="regenerate-research"
+                  checked={enableWebResearch}
+                  onChange={(e) => setEnableWebResearch(e.target.checked)}
+                  className="rounded"
+                />
+                <Label htmlFor="regenerate-research" className="cursor-pointer">
+                  Enable web research
+                </Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="regenerate-image"
+                  checked={shouldGenerateImage}
+                  onChange={(e) => setShouldGenerateImage(e.target.checked)}
+                  className="rounded"
+                />
+                <Label htmlFor="regenerate-image" className="cursor-pointer">
+                  Generate new image
+                </Label>
+              </div>
+              <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+                <p className="text-sm text-yellow-400">
+                  Warning: This will replace the current content. Make sure to save any changes first.
+                </p>
+              </div>
+              <div className="flex gap-2 justify-end">
+                <Button variant="outline" onClick={() => setShowDialog(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleRegenerate} disabled={regenerateMutation.isPending}>
+                  {regenerateMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                  )}
+                  Regenerate
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+    </>
   );
 }
