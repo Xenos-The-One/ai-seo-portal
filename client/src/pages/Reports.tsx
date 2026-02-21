@@ -1,6 +1,6 @@
 import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart3, TrendingUp, DollarSign, Zap } from "lucide-react";
+import { BarChart3, TrendingUp, DollarSign, Zap, Cpu } from "lucide-react";
 
 export default function Reports() {
   const { data: contentList } = trpc.content.list.useQuery();
@@ -24,6 +24,49 @@ export default function Reports() {
   })) || [];
 
   const topClients = clientContentCounts.sort((a, b) => b.count - a.count).slice(0, 5);
+
+  // Model cost calculation (approximate costs per 1M tokens)
+  const modelCosts: Record<string, { input: number; output: number; name: string }> = {
+    "claude-3-5-sonnet-20241022": { input: 3.0, output: 15.0, name: "Claude 3.5 Sonnet" },
+    "claude-3-5-haiku-20241022": { input: 0.8, output: 4.0, name: "Claude 3.5 Haiku" },
+    "gpt-4o": { input: 2.5, output: 10.0, name: "GPT-4o" },
+    "gpt-4o-mini": { input: 0.15, output: 0.6, name: "GPT-4o Mini" },
+    "gemini-2.5-flash": { input: 0.075, output: 0.3, name: "Gemini 2.5 Flash" },
+    "gemini-2.5-pro": { input: 1.25, output: 5.0, name: "Gemini 2.5 Pro" },
+  };
+
+  // Calculate cost by model
+  const modelUsage = contentList?.reduce((acc, item) => {
+    const model = item.content.aiModel || "gemini-2.5-flash";
+    if (!acc[model]) {
+      acc[model] = {
+        count: 0,
+        inputTokens: 0,
+        outputTokens: 0,
+        totalTokens: 0,
+        cost: 0,
+      };
+    }
+    acc[model].count++;
+    acc[model].inputTokens += item.content.inputTokens || 0;
+    acc[model].outputTokens += item.content.outputTokens || 0;
+    acc[model].totalTokens += item.content.totalTokens || 0;
+    
+    // Calculate cost
+    const costs = modelCosts[model] || { input: 0, output: 0, name: model };
+    acc[model].cost += 
+      (item.content.inputTokens / 1000000) * costs.input +
+      (item.content.outputTokens / 1000000) * costs.output;
+    
+    return acc;
+  }, {} as Record<string, { count: number; inputTokens: number; outputTokens: number; totalTokens: number; cost: number }>);
+
+  const totalEstimatedCost = Object.values(modelUsage || {}).reduce((sum, m) => sum + m.cost, 0);
+  const modelUsageArray = Object.entries(modelUsage || {}).map(([model, data]) => ({
+    model,
+    name: modelCosts[model]?.name || model,
+    ...data,
+  })).sort((a, b) => b.cost - a.cost);
 
   return (
     <div className="p-8">
@@ -77,10 +120,23 @@ export default function Reports() {
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Active Clients
             </CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <Cpu className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalClients}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Estimated Cost
+            </CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">${totalEstimatedCost.toFixed(2)}</div>
+            <p className="text-xs text-muted-foreground mt-1">Based on API pricing</p>
           </CardContent>
         </Card>
       </div>
@@ -115,6 +171,39 @@ export default function Reports() {
                 <span className="text-sm font-medium">{statusBreakdown.approved}</span>
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* AI Model Cost Breakdown */}
+        <Card>
+          <CardHeader>
+            <CardTitle>AI Model Cost Breakdown</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {modelUsageArray.length > 0 ? (
+              <div className="space-y-4">
+                {modelUsageArray.map((model) => (
+                  <div key={model.model} className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">{model.name}</span>
+                      <span className="text-sm font-bold">${model.cost.toFixed(3)}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span>{model.count} posts • {model.totalTokens.toLocaleString()} tokens</span>
+                      <span>{((model.cost / totalEstimatedCost) * 100).toFixed(1)}%</span>
+                    </div>
+                    <div className="h-2 bg-muted rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-primary"
+                        style={{ width: `${(model.cost / totalEstimatedCost) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No data available</p>
+            )}
           </CardContent>
         </Card>
 

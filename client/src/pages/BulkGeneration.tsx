@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
 export default function BulkGeneration() {
@@ -36,7 +36,15 @@ export default function BulkGeneration() {
   const [results, setResults] = useState<any>(null);
 
   const { data: clients } = trpc.clients.list.useQuery();
+  const { data: settings } = trpc.agencySettings.getAll.useQuery();
   const bulkMutation = trpc.bulk.generate.useMutation();
+
+  // Update default AI model when settings load
+  useEffect(() => {
+    if (settings?.default_ai_model && formData.aiModel === "gemini-2.5-flash") {
+      setFormData(prev => ({ ...prev, aiModel: settings.default_ai_model }));
+    }
+  }, [settings]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

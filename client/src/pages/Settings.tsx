@@ -12,6 +12,13 @@ import {
 import {
   Settings as SettingsIcon, Palette, FileText, Save, Loader2, Plus, Trash2, Building2
 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -30,6 +37,7 @@ export default function Settings() {
   const [defaultTone, setDefaultTone] = useState("");
   const [defaultAudience, setDefaultAudience] = useState("");
   const [footerText, setFooterText] = useState("");
+  const [defaultAiModel, setDefaultAiModel] = useState("gemini-2.5-flash");
 
   // New template dialog
   const [showNewTemplate, setShowNewTemplate] = useState(false);
@@ -45,6 +53,7 @@ export default function Settings() {
       setDefaultTone(settings["default_tone"] || "");
       setDefaultAudience(settings["default_audience"] || "");
       setFooterText(settings["footer_text"] || "");
+      setDefaultAiModel(settings["default_ai_model"] || "gemini-2.5-flash");
     }
   }, [settings]);
 
@@ -59,6 +68,7 @@ export default function Settings() {
           default_tone: defaultTone,
           default_audience: defaultAudience,
           footer_text: footerText,
+          default_ai_model: defaultAiModel,
         },
       });
       toast.success("Branding settings saved");
@@ -363,6 +373,28 @@ export default function Settings() {
                   onChange={(e) => setDefaultAudience(e.target.value)}
                   placeholder="e.g. Small business owners, Marketing professionals"
                 />
+              </div>
+              <div>
+                <Label htmlFor="defaultAiModel">Default AI Model</Label>
+                <Select
+                  value={defaultAiModel}
+                  onValueChange={(value) => setDefaultAiModel(value)}
+                >
+                  <SelectTrigger id="defaultAiModel">
+                    <SelectValue placeholder="Select default AI model" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet (High Quality)</SelectItem>
+                    <SelectItem value="claude-3-5-haiku-20241022">Claude 3.5 Haiku (Balanced)</SelectItem>
+                    <SelectItem value="gpt-4o">GPT-4o (OpenAI)</SelectItem>
+                    <SelectItem value="gpt-4o-mini">GPT-4o Mini (Fast)</SelectItem>
+                    <SelectItem value="gemini-2.5-flash">Gemini 2.5 Flash (Cost-Effective)</SelectItem>
+                    <SelectItem value="gemini-2.5-pro">Gemini 2.5 Pro (Advanced)</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  This model will be pre-selected when generating new content
+                </p>
               </div>
               <Separator />
               <Button onClick={handleSaveBranding} disabled={updateBatchMutation.isPending}>

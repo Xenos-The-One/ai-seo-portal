@@ -355,7 +355,23 @@ export default function ContentDetail() {
             <CardContent className="space-y-3">
               <div>
                 <p className="text-sm text-muted-foreground">Model</p>
-                <p className="text-sm font-medium">{content.aiModel}</p>
+                <p className="text-sm font-medium">
+                  {content.aiModel === "claude-3-5-sonnet-20241022" && "Claude 3.5 Sonnet"}
+                  {content.aiModel === "claude-3-5-haiku-20241022" && "Claude 3.5 Haiku"}
+                  {content.aiModel === "gpt-4o" && "GPT-4o"}
+                  {content.aiModel === "gpt-4o-mini" && "GPT-4o Mini"}
+                  {content.aiModel === "gemini-2.5-flash" && "Gemini 2.5 Flash"}
+                  {content.aiModel === "gemini-2.5-pro" && "Gemini 2.5 Pro"}
+                  {![
+                    "claude-3-5-sonnet-20241022",
+                    "claude-3-5-haiku-20241022",
+                    "gpt-4o",
+                    "gpt-4o-mini",
+                    "gemini-2.5-flash",
+                    "gemini-2.5-pro",
+                  ].includes(content.aiModel) && content.aiModel}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">{content.aiModel}</p>
               </div>
               {content.customPrompt && (
                 <div>

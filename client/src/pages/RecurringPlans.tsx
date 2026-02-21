@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -41,6 +41,14 @@ export default function RecurringPlans() {
 
   const { data: clients } = trpc.clients.list.useQuery();
   const { data: plans, refetch } = trpc.recurringPlans.list.useQuery();
+  const { data: settings } = trpc.agencySettings.getAll.useQuery();
+
+  // Update default AI model when settings load
+  useEffect(() => {
+    if (settings?.default_ai_model && formData.aiModel === "gemini-2.5-flash") {
+      setFormData(prev => ({ ...prev, aiModel: settings.default_ai_model }));
+    }
+  }, [settings]);
 
   const createMutation = trpc.recurringPlans.create.useMutation({
     onSuccess: () => {

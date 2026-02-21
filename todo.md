@@ -107,5 +107,9 @@
 - [x] Update bulk generation to support model selection
 - [x] Update recurring plans to support model selection
 - [x] Write and run tests for AI model selection
-- [ ] Display selected model in content detail view (optional enhancement)
-- [ ] Add model selection to agency settings for default model preference (optional enhancement)
+
+## Round 11 Follow-up Features
+- [x] Add default AI model preference to agency settings
+- [x] Update content generation forms to use default model from settings
+- [x] Display selected AI model in content detail view
+- [x] Add model cost tracking to analytics dashboard

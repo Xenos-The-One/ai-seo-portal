@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, FileText, Loader2, Image as ImageIcon } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Link } from "wouter";
 
@@ -39,7 +39,15 @@ export default function Content() {
 
   const { data: contentList, isLoading, refetch } = trpc.content.list.useQuery();
   const { data: clients } = trpc.clients.list.useQuery();
+  const { data: settings } = trpc.agencySettings.getAll.useQuery();
   const generateMutation = trpc.content.generate.useMutation();
+
+  // Update default AI model when settings load
+  useEffect(() => {
+    if (settings?.default_ai_model && formData.aiModel === "gemini-2.5-flash") {
+      setFormData(prev => ({ ...prev, aiModel: settings.default_ai_model }));
+    }
+  }, [settings]);
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
