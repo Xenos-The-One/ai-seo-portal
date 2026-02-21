@@ -87,4 +87,25 @@
 ## Round 8 Follow-up Features
 - [x] Client-facing white-labeled portal (use agency branding from Settings)
 - [x] Batch scheduling with recurring content plans (auto-generate and schedule)
-- [ ] Create reusable skill documenting AI SEO Portal architecture
+- [x] Create reusable skill documenting AI SEO Portal architecture
+
+
+## Documentation
+- [x] Client user manual with step-by-step instructions
+- [x] Onboarding guide for new clients
+- [x] Quick reference guide and FAQ
+
+
+## Bug Fixes (Round 9)
+- [x] Fix syntax error in routers.ts line 146
+- [x] Resolve Vite websocket connection warning
+
+
+## Round 10 Follow-up Features
+- [x] Configurable AI model selection (Claude, GPT, Gemini) for content generation
+- [x] Update content generation form to include model selector dropdown
+- [x] Update bulk generation to support model selection
+- [x] Update recurring plans to support model selection
+- [x] Write and run tests for AI model selection
+- [ ] Display selected model in content detail view (optional enhancement)
+- [ ] Add model selection to agency settings for default model preference (optional enhancement)

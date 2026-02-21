@@ -317,6 +317,7 @@ export const recurringPlans = mysqlTable("recurringPlans", {
   postsPerCycle: int("postsPerCycle").notNull().default(1),
   topicTemplate: text("topicTemplate"), // Template for generating topics
   customPrompt: text("customPrompt"),
+  aiModel: varchar("aiModel", { length: 100 }).default("gemini-2.5-flash"),
   enableWebResearch: int("enableWebResearch").notNull().default(1),
   enableImageGeneration: int("enableImageGeneration").notNull().default(1),
   isActive: int("isActive").notNull().default(1),

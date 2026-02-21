@@ -158,9 +158,10 @@ export const appRouter = router({
         customPrompt: z.string().optional(),
         shouldGenerateImage: z.boolean().default(true),
         enableWebResearch: z.boolean().default(true),
+        aiModel: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
-        const { clientId, topic, customPrompt, shouldGenerateImage, enableWebResearch } = input;
+        const { clientId, topic, customPrompt, shouldGenerateImage, enableWebResearch, aiModel } = input;
         
         // Initialize tracking variables
         let inputTokens = 0;
@@ -215,6 +216,7 @@ export const appRouter = router({
         const userPrompt = `Write a comprehensive blog post about: ${topic}${researchContext ? `\n\nUse this research context:\n${researchContext}` : ""}`;
 
         const llmResponse = await invokeLLM({
+          model: aiModel || "gemini-2.5-flash",
           messages: [
             { role: "system", content: systemPrompt },
             { role: "user", content: userPrompt },
@@ -254,7 +256,7 @@ export const appRouter = router({
           imagePrompt,
           status: "draft",
           progress: 75,
-          aiModel: "gpt-4o",
+          aiModel: aiModel || "gemini-2.5-flash",
           customPrompt: customPrompt || null,
           inputTokens,
           outputTokens,

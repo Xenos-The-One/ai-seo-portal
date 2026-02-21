@@ -23,6 +23,7 @@ export const recurringPlansRouter = router({
         postsPerCycle: z.number().min(1).max(10),
         topicTemplate: z.string().optional(),
         customPrompt: z.string().optional(),
+        aiModel: z.string().optional(),
         enableWebResearch: z.boolean().default(true),
         enableImageGeneration: z.boolean().default(true),
       })
@@ -51,6 +52,7 @@ export const recurringPlansRouter = router({
 
       const result = await db.insert(recurringPlans).values({
         ...input,
+        aiModel: input.aiModel || "gemini-2.5-flash",
         enableWebResearch: input.enableWebResearch ? 1 : 0,
         enableImageGeneration: input.enableImageGeneration ? 1 : 0,
         nextRunDate,

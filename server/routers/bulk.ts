@@ -12,9 +12,10 @@ export const bulkRouter = router({
       customPrompt: z.string().optional(),
       shouldGenerateImage: z.boolean().default(true),
       enableWebResearch: z.boolean().default(true),
+      aiModel: z.string().optional(),
     }))
     .mutation(async ({ ctx, input }) => {
-      const { clientId, topics, customPrompt, shouldGenerateImage, enableWebResearch } = input;
+      const { clientId, topics, customPrompt, shouldGenerateImage, enableWebResearch, aiModel } = input;
       const results: any[] = [];
 
       for (const topic of topics) {
@@ -66,6 +67,7 @@ export const bulkRouter = router({
           const userPrompt = `Write a comprehensive blog post about: ${topic}${researchContext ? `\n\nUse this research context:\n${researchContext}` : ""}`;
 
           const llmResponse = await invokeLLM({
+            model: aiModel || "gemini-2.5-flash",
             messages: [
               { role: "system", content: systemPrompt },
               { role: "user", content: userPrompt },
@@ -102,7 +104,7 @@ export const bulkRouter = router({
             imagePrompt,
             status: "draft",
             progress: 75,
-            aiModel: "gpt-4o",
+            aiModel: aiModel || "gemini-2.5-flash",
             customPrompt: customPrompt || null,
             inputTokens,
             outputTokens,

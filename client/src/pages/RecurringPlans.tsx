@@ -34,6 +34,7 @@ export default function RecurringPlans() {
     postsPerCycle: 1,
     topicTemplate: "",
     customPrompt: "",
+    aiModel: "gemini-2.5-flash",
     enableWebResearch: true,
     enableImageGeneration: true,
   });
@@ -53,6 +54,7 @@ export default function RecurringPlans() {
         postsPerCycle: 1,
         topicTemplate: "",
         customPrompt: "",
+        aiModel: "gemini-2.5-flash",
         enableWebResearch: true,
         enableImageGeneration: true,
       });
@@ -219,6 +221,31 @@ export default function RecurringPlans() {
                   placeholder="Custom instructions for AI content generation"
                   rows={4}
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="aiModel">AI Model</Label>
+                <Select
+                  value={formData.aiModel}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, aiModel: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select AI model" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet (High Quality)</SelectItem>
+                    <SelectItem value="claude-3-5-haiku-20241022">Claude 3.5 Haiku (Balanced)</SelectItem>
+                    <SelectItem value="gpt-4o">GPT-4o (OpenAI)</SelectItem>
+                    <SelectItem value="gpt-4o-mini">GPT-4o Mini (Fast)</SelectItem>
+                    <SelectItem value="gemini-2.5-flash">Gemini 2.5 Flash (Cost-Effective)</SelectItem>
+                    <SelectItem value="gemini-2.5-pro">Gemini 2.5 Pro (Advanced)</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Claude models excel at creative writing, GPT models are versatile, Gemini models are cost-effective
+                </p>
               </div>
 
               <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">

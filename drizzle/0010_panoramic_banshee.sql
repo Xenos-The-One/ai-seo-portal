@@ -1,0 +1,1 @@
+ALTER TABLE `recurringPlans` ADD `aiModel` varchar(100) DEFAULT 'gemini-2.5-flash';
