@@ -32,6 +32,7 @@ import {
   Copy,
   Trash2,
   Palette,
+  BarChart,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useParams, useLocation } from "wouter";
@@ -221,6 +222,10 @@ export default function ClientDetail() {
           <TabsTrigger value="branding" className="gap-2">
             <Palette className="h-4 w-4" />
             Branding
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="gap-2">
+            <BarChart className="h-4 w-4" />
+            Analytics
           </TabsTrigger>
         </TabsList>
 
@@ -506,6 +511,11 @@ export default function ClientDetail() {
         {/* Portal Access Tab */}
         <TabsContent value="portal">
           <PortalAccessTab clientId={clientId} clientName={client.name} />
+        </TabsContent>
+
+        {/* Analytics Tab */}
+        <TabsContent value="analytics">
+          <AnalyticsTab clientId={clientId} />
         </TabsContent>
 
         {/* Branding Tab */}
@@ -929,6 +939,187 @@ function PortalAccessTab({ clientId, clientName }: { clientId: number; clientNam
   );
 }
 
+
+// Analytics Tab Component
+function AnalyticsTab({ clientId }: { clientId: number }) {
+  const { data: connection, refetch } = trpc.googleAnalytics.get.useQuery({ clientId });
+  const upsertMutation = trpc.googleAnalytics.upsert.useMutation();
+  const deleteMutation = trpc.googleAnalytics.delete.useMutation();
+  
+  const [formData, setFormData] = useState({
+    propertyId: "",
+    viewId: "",
+    serviceAccountEmail: "",
+    serviceAccountKey: "",
+  });
+
+  useEffect(() => {
+    if (connection) {
+      setFormData({
+        propertyId: connection.propertyId || "",
+        viewId: connection.viewId || "",
+        serviceAccountEmail: connection.serviceAccountEmail || "",
+        serviceAccountKey: connection.serviceAccountKey || "",
+      });
+    }
+  }, [connection]);
+
+  const handleSave = async () => {
+    try {
+      await upsertMutation.mutateAsync({
+        clientId,
+        ...formData,
+      });
+      toast.success("Analytics connection saved successfully!");
+      refetch();
+    } catch {
+      toast.error("Failed to save analytics connection");
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!confirm("Are you sure you want to delete this analytics connection?")) return;
+    
+    try {
+      await deleteMutation.mutateAsync({ clientId });
+      toast.success("Analytics connection deleted");
+      setFormData({
+        propertyId: "",
+        viewId: "",
+        serviceAccountEmail: "",
+        serviceAccountKey: "",
+      });
+      refetch();
+    } catch {
+      toast.error("Failed to delete analytics connection");
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Google Analytics Connection</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Connect Google Analytics to automatically pull traffic and keyword data
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="propertyId">GA4 Property ID *</Label>
+            <Input
+              id="propertyId"
+              value={formData.propertyId}
+              onChange={(e) => setFormData({ ...formData, propertyId: e.target.value })}
+              placeholder="123456789"
+            />
+            <p className="text-xs text-muted-foreground">
+              Find this in Google Analytics under Admin → Property Settings
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="viewId">View ID (Optional)</Label>
+            <Input
+              id="viewId"
+              value={formData.viewId}
+              onChange={(e) => setFormData({ ...formData, viewId: e.target.value })}
+              placeholder="987654321"
+            />
+            <p className="text-xs text-muted-foreground">
+              For Universal Analytics (legacy) only
+            </p>
+          </div>
+
+          <Separator />
+
+          <div className="space-y-2">
+            <Label htmlFor="serviceAccountEmail">Service Account Email</Label>
+            <Input
+              id="serviceAccountEmail"
+              value={formData.serviceAccountEmail}
+              onChange={(e) => setFormData({ ...formData, serviceAccountEmail: e.target.value })}
+              placeholder="your-service-account@project.iam.gserviceaccount.com"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="serviceAccountKey">Service Account Key (JSON)</Label>
+            <Textarea
+              id="serviceAccountKey"
+              value={formData.serviceAccountKey}
+              onChange={(e) => setFormData({ ...formData, serviceAccountKey: e.target.value })}
+              placeholder='{"type": "service_account", "project_id": "...", ...}'
+              rows={6}
+              className="font-mono text-xs"
+            />
+            <p className="text-xs text-muted-foreground">
+              Paste the entire JSON key file content from Google Cloud Console
+            </p>
+          </div>
+
+          <div className="flex gap-2 pt-4">
+            <Button
+              onClick={handleSave}
+              disabled={upsertMutation.isPending || !formData.propertyId}
+            >
+              {upsertMutation.isPending ? (
+                <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving...</>
+              ) : (
+                <><Save className="h-4 w-4 mr-2" /> Save Connection</>
+              )}
+            </Button>
+            {connection && (
+              <Button
+                variant="destructive"
+                onClick={handleDelete}
+                disabled={deleteMutation.isPending}
+              >
+                {deleteMutation.isPending ? (
+                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Deleting...</>
+                ) : (
+                  <><Trash2 className="h-4 w-4 mr-2" /> Delete Connection</>
+                )}
+              </Button>
+            )}
+          </div>
+
+          {connection && connection.lastSyncedAt && (
+            <div className="text-sm text-muted-foreground pt-2">
+              Last synced: {new Date(connection.lastSyncedAt).toLocaleString()}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>How to Set Up</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4 text-sm">
+          <div>
+            <h4 className="font-semibold mb-2">1. Get your GA4 Property ID</h4>
+            <p className="text-muted-foreground">
+              In Google Analytics, go to Admin → Property Settings. Copy the Property ID.
+            </p>
+          </div>
+          <div>
+            <h4 className="font-semibold mb-2">2. Create a Service Account</h4>
+            <p className="text-muted-foreground">
+              In Google Cloud Console, create a service account and download the JSON key file.
+            </p>
+          </div>
+          <div>
+            <h4 className="font-semibold mb-2">3. Grant Access</h4>
+            <p className="text-muted-foreground">
+              In Google Analytics, add the service account email as a Viewer to your property.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
 
 // Branding Tab Component
 function BrandingTab({ clientId }: { clientId: number }) {

@@ -428,3 +428,32 @@ export const abTests = mysqlTable("abTests", {
 
 export type ABTest = typeof abTests.$inferSelect;
 export type InsertABTest = typeof abTests.$inferInsert;
+
+/**
+ * Google Analytics Connections table - stores GA credentials per client
+ */
+export const googleAnalyticsConnections = mysqlTable("googleAnalyticsConnections", {
+  id: int("id").autoincrement().primaryKey(),
+  clientId: int("clientId").notNull().references(() => clients.id, { onDelete: "cascade" }),
+  propertyId: varchar("propertyId", { length: 255 }).notNull(), // GA4 Property ID
+  viewId: varchar("viewId", { length: 255 }), // Universal Analytics View ID (optional, for legacy)
+  
+  // OAuth credentials (encrypted in production)
+  accessToken: text("accessToken"),
+  refreshToken: text("refreshToken"),
+  tokenExpiry: timestamp("tokenExpiry"),
+  
+  // API Key alternative (for service account)
+  serviceAccountEmail: varchar("serviceAccountEmail", { length: 320 }),
+  serviceAccountKey: text("serviceAccountKey"), // JSON key file content (encrypted)
+  
+  isActive: int("isActive").default(1).notNull(), // 1 = active, 0 = inactive
+  lastSyncedAt: timestamp("lastSyncedAt"),
+  
+  createdBy: int("createdBy").notNull().references(() => users.id),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type GoogleAnalyticsConnection = typeof googleAnalyticsConnections.$inferSelect;
+export type InsertGoogleAnalyticsConnection = typeof googleAnalyticsConnections.$inferInsert;

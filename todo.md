@@ -211,3 +211,14 @@
 - [ ] Add automated Webflow publishing integration
 - [ ] Add automated Contentful publishing integration
 - [ ] Test all integrations and create final checkpoint
+
+
+## Round 20 Google Analytics Integration
+- [x] Add Google Analytics credentials table to database schema
+- [x] Implement Google Analytics API authentication helper
+- [x] Create data fetching functions for traffic metrics
+- [x] Create data fetching functions for keyword performance
+- [x] Build UI for managing Google Analytics credentials in ClientDetail page
+- [ ] Update Performance dashboard to display real GA data
+- [ ] Update client portal Performance page to show real GA data
+- [x] Write tests for Google Analytics integration
