@@ -324,9 +324,16 @@ export const appRouter = router({
         content: z.string().optional(),
         status: z.enum(["draft", "in_progress", "approved"]).optional(),
         progress: z.number().min(0).max(100).optional(),
+        scheduledPublishDate: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
-        const { id, ...updates } = input;
+        const { id, scheduledPublishDate, ...updates } = input;
+        
+        // Convert scheduledPublishDate string to Date if provided
+        const finalUpdates: any = { ...updates };
+        if (scheduledPublishDate) {
+          finalUpdates.scheduledPublishDate = new Date(scheduledPublishDate);
+        }
         
         // Check if status is changing to approved
         if (updates.status === "approved") {
@@ -357,7 +364,7 @@ export const appRouter = router({
           }
         }
         
-        await updateContent(id, updates);
+        await updateContent(id, finalUpdates);
         return { success: true };
       }),
     delete: protectedProcedure
@@ -540,6 +547,37 @@ export const appRouter = router({
   seoAudit: seoAuditRouter,
   agencySettings: agencySettingsRouter,
   recurringPlans: recurringPlansRouter,
+
+  // Keyword Research
+  keywords: router({
+    suggest: protectedProcedure
+      .input(z.object({
+        topic: z.string().min(1),
+        count: z.number().min(1).max(20).optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { getKeywordSuggestions } = await import("./keywordResearch");
+        return await getKeywordSuggestions(input.topic, input.count);
+      }),
+    analyze: protectedProcedure
+      .input(z.object({
+        content: z.string().min(1),
+        targetKeywords: z.array(z.string()),
+      }))
+      .mutation(async ({ input }) => {
+        const { analyzeContentKeywords } = await import("./keywordResearch");
+        return await analyzeContentKeywords(input.content, input.targetKeywords);
+      }),
+    optimize: protectedProcedure
+      .input(z.object({
+        content: z.string().min(1),
+        targetKeywords: z.array(z.string()),
+      }))
+      .mutation(async ({ input }) => {
+        const { optimizeContentForKeywords } = await import("./keywordResearch");
+        return await optimizeContentForKeywords(input.content, input.targetKeywords);
+      }),
+  }),
 
   // A/B Testing
   abTests: router({

@@ -154,7 +154,7 @@ export const contentComments = mysqlTable("contentComments", {
   contentId: int("contentId").notNull().references(() => content.id, { onDelete: "cascade" }),
   userId: int("userId").notNull().references(() => users.id),
   comment: text("comment").notNull(),
-  status: mysqlEnum("status", ["pending", "resolved"]).default("pending").notNull(),
+  isResolved: int("isResolved").default(0).notNull(), // 0 = open, 1 = resolved
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -163,7 +163,7 @@ export type ContentComment = typeof contentComments.$inferSelect;
 export type InsertContentComment = typeof contentComments.$inferInsert;
 
 /**
- * Content Revisions table - tracks revision history of content
+ * Content Revisions table - tracks revision requests and their status
  */
 export const contentRevisions = mysqlTable("contentRevisions", {
   id: int("id").autoincrement().primaryKey(),
@@ -173,6 +173,11 @@ export const contentRevisions = mysqlTable("contentRevisions", {
   content: text("content"),
   changeDescription: text("changeDescription"),
   revisionNumber: int("revisionNumber").notNull(),
+  // Approval workflow fields
+  requestedBy: int("requestedBy").references(() => users.id),
+  reason: text("reason"),
+  status: mysqlEnum("status", ["pending", "in_progress", "completed", "rejected"]),
+  completedAt: timestamp("completedAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 

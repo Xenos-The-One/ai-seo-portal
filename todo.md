@@ -135,3 +135,18 @@
 - [x] Add template categories (product reviews, how-to guides, listicles, etc.)
 - [x] Create template editor for custom templates
 - [x] Write tests for all new features
+
+## Round 14 Workflow Enhancements
+- [x] Implement content calendar view with visual date grid
+- [x] Add drag-and-drop scheduling for content items
+- [x] Color-code calendar by client or content status
+- [x] Add month/week view toggles for calendar
+- [x] Implement keyword research integration (search volume, difficulty)
+- [x] Add keyword suggestion API connections
+- [x] Auto-optimize content for target keywords
+- [x] Display keyword metrics in content editor
+- [ ] Create client approval workflow system (database schema ready)
+- [ ] Add commenting and revision request features (in progress)
+- [ ] Implement email notifications for approval stages
+- [ ] Build approval status tracking dashboard
+- [ ] Write tests for calendar and keyword research features

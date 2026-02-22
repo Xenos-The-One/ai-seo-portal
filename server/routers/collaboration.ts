@@ -28,7 +28,7 @@ export const collaborationRouter = router({
   resolveComment: protectedProcedure
     .input(z.object({ commentId: z.number() }))
     .mutation(async ({ input }) => {
-      await updateCommentStatus(input.commentId, "resolved");
+      await updateCommentStatus(input.commentId, 1); // 1 = resolved
       return { success: true };
     }),
 

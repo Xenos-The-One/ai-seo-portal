@@ -246,10 +246,10 @@ export async function getContentComments(contentId: number) {
     .orderBy(contentComments.createdAt);
 }
 
-export async function updateCommentStatus(id: number, status: "pending" | "resolved") {
+export async function updateCommentStatus(id: number, isResolved: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  await db.update(contentComments).set({ status }).where(eq(contentComments.id, id));
+  await db.update(contentComments).set({ isResolved }).where(eq(contentComments.id, id));
 }
 
 export async function createRevision(data: any) {

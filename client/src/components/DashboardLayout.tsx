@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Users, FileText, BarChart3, Zap, Calendar, Layers, MessageSquare, TrendingUp, Copy, GitBranch, Sparkles, Webhook, ClipboardList, Shield, Bell, Search, Settings, UserPlus, RefreshCw, FlaskConical } from "lucide-react";
+import { LayoutDashboard, LogOut, PanelLeft, Users, FileText, BarChart3, Zap, Calendar, CalendarDays, Layers, MessageSquare, TrendingUp, Copy, GitBranch, Sparkles, Webhook, ClipboardList, Shield, Bell, Search, Settings, UserPlus, RefreshCw, FlaskConical, Target } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
@@ -34,6 +34,7 @@ const menuItems = [
   { icon: FileText, label: "Content", path: "/content" },
   { icon: Zap, label: "Bulk Generation", path: "/bulk" },
   { icon: Calendar, label: "Scheduling", path: "/scheduling" },
+  { icon: CalendarDays, label: "Calendar", path: "/calendar" },
   { icon: RefreshCw, label: "Recurring Plans", path: "/recurring-plans" },
   { icon: FlaskConical, label: "A/B Testing", path: "/ab-testing" },
   { icon: Layers, label: "Templates", path: "/templates" },
@@ -41,6 +42,7 @@ const menuItems = [
   { icon: GitBranch, label: "Version History", path: "/version-history" },
   { icon: Sparkles, label: "Quality Score", path: "/quality-score" },
   { icon: Search, label: "SEO Audit", path: "/seo-audit" },
+  { icon: Target, label: "Keyword Research", path: "/keyword-research" },
   { icon: TrendingUp, label: "Analytics", path: "/analytics" },
   { icon: Copy, label: "Repurposing", path: "/repurposing" },
   { icon: Webhook, label: "Publishing", path: "/publishing" },
