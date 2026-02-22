@@ -579,6 +579,98 @@ export const appRouter = router({
       }),
   }),
 
+  // Performance Tracking
+  performance: router({
+    getContentPerformance: protectedProcedure
+      .input(z.object({ contentId: z.number() }))
+      .query(async ({ input }) => {
+        const { getContentPerformance } = await import("./performanceTracking");
+        return await getContentPerformance(input.contentId);
+      }),
+    getTopPerforming: protectedProcedure
+      .input(z.object({ limit: z.number().default(10) }))
+      .query(async ({ input }) => {
+        const { getTopPerformingContent } = await import("./performanceTracking");
+        return await getTopPerformingContent(input.limit);
+      }),
+    getSummary: protectedProcedure.query(async () => {
+      const { getPerformanceSummary } = await import("./performanceTracking");
+      return await getPerformanceSummary();
+    }),
+    trackView: protectedProcedure
+      .input(z.object({ contentId: z.number() }))
+      .mutation(async ({ input }) => {
+        const { trackContentView } = await import("./performanceTracking");
+        return await trackContentView(input.contentId);
+      }),
+    trackClick: protectedProcedure
+      .input(z.object({ contentId: z.number() }))
+      .mutation(async ({ input }) => {
+        const { trackContentClick } = await import("./performanceTracking");
+        return await trackContentClick(input.contentId);
+      }),
+    getTrends: protectedProcedure
+      .input(z.object({ days: z.number().default(30) }))
+      .query(async ({ input }) => {
+        const { getPerformanceTrends } = await import("./performanceTracking");
+        return await getPerformanceTrends(input.days);
+      }),
+  }),
+
+  // Approval Workflow
+  approvals: router({
+    requestApproval: protectedProcedure
+      .input(z.object({ contentId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const { requestApproval } = await import("./approvalWorkflow");
+        return await requestApproval(input.contentId, ctx.user.id);
+      }),
+    approve: protectedProcedure
+      .input(z.object({ contentId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const { approveContent } = await import("./approvalWorkflow");
+        return await approveContent(input.contentId, ctx.user.id);
+      }),
+    requestRevision: protectedProcedure
+      .input(z.object({ 
+        contentId: z.number(),
+        reason: z.string().min(1)
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { requestRevision } = await import("./approvalWorkflow");
+        return await requestRevision(input.contentId, ctx.user.id, input.reason);
+      }),
+    getPendingApprovals: protectedProcedure.query(async () => {
+      const { getPendingApprovals } = await import("./approvalWorkflow");
+      return await getPendingApprovals();
+    }),
+    getRevisionRequests: protectedProcedure
+      .input(z.object({ contentId: z.number() }))
+      .query(async ({ input }) => {
+        const { getRevisionRequests } = await import("./approvalWorkflow");
+        return await getRevisionRequests(input.contentId);
+      }),
+    completeRevision: protectedProcedure
+      .input(z.object({ revisionId: z.number() }))
+      .mutation(async ({ input }) => {
+        const { completeRevision } = await import("./approvalWorkflow");
+        return await completeRevision(input.revisionId);
+      }),
+    addComment: protectedProcedure
+      .input(z.object({
+        contentId: z.number(),
+        comment: z.string().min(1)
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { addComment } = await import("./approvalWorkflow");
+        return await addComment(input.contentId, ctx.user.id, input.comment);
+      }),
+    getStats: protectedProcedure.query(async () => {
+      const { getApprovalStats } = await import("./approvalWorkflow");
+      return await getApprovalStats();
+    }),
+  }),
+
   // A/B Testing
   abTests: router({
     list: protectedProcedure.query(async () => {
