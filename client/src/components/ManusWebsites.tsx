@@ -22,9 +22,12 @@ export function ManusWebsites({ clientId }: ManusWebsitesProps) {
     projectTitle: "",
     projectDescription: "",
     template: "web-static" as "web-static" | "web-db-user",
+    designStandardId: "" as string,
   });
 
   const { data: websites, refetch } = trpc.manusWebsites.getWebsites.useQuery({ clientId });
+  const { data: designStandards } = trpc.designStandards.getAll.useQuery();
+  const { data: defaultStandard } = trpc.designStandards.getDefault.useQuery();
   const createMutation = trpc.manusWebsites.createWebsite.useMutation();
   const deleteMutation = trpc.manusWebsites.deleteWebsite.useMutation();
   const refreshMutation = trpc.manusWebsites.refreshWebsite.useMutation();
@@ -42,6 +45,7 @@ export function ManusWebsites({ clientId }: ManusWebsitesProps) {
         projectTitle: formData.projectTitle,
         projectDescription: formData.projectDescription,
         template: formData.template,
+        designStandardId: formData.designStandardId ? parseInt(formData.designStandardId) : undefined,
       });
 
       if (result.success) {
@@ -52,6 +56,7 @@ export function ManusWebsites({ clientId }: ManusWebsitesProps) {
           projectTitle: "",
           projectDescription: "",
           template: "web-static",
+          designStandardId: defaultStandard?.id.toString() || "",
         });
         refetch();
       } else {
@@ -206,6 +211,34 @@ export function ManusWebsites({ clientId }: ManusWebsitesProps) {
                     {formData.template === "web-static"
                       ? "Simple static website with blog capabilities"
                       : "Full-featured web app with database and user authentication"}
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="designStandard">Design Standard</Label>
+                  <Select
+                    value={formData.designStandardId}
+                    onValueChange={(value) => setFormData({ ...formData, designStandardId: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select design standard..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {designStandards && designStandards.length > 0 ? (
+                        designStandards.map((standard) => (
+                          <SelectItem key={standard.id} value={standard.id.toString()}>
+                            {standard.name} {standard.isDefault === 1 && "(Default)"}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="none" disabled>
+                          No design standards available
+                        </SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Apply your agency's design guidelines to this website
                   </p>
                 </div>
               </div>

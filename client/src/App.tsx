@@ -34,6 +34,8 @@ import Calendar from "./pages/Calendar";
 import KeywordResearch from "./pages/KeywordResearch";
 import Approvals from "./pages/Approvals";
 import Performance from "./pages/Performance";
+import DesignStandards from "./pages/DesignStandards";
+import PublishingAnalytics from "./pages/PublishingAnalytics";
 import PortalLogin from "./pages/portal/PortalLogin";
 import PortalDashboard from "./pages/portal/PortalDashboard";
 import PortalContent from "./pages/portal/PortalContent";
@@ -74,6 +76,8 @@ function DashboardRouter() {
         <Route path="/keyword-research" component={KeywordResearch} />
         <Route path="/approvals" component={Approvals} />
         <Route path="/performance" component={Performance} />
+        <Route path="/design-standards" component={DesignStandards} />
+        <Route path="/publishing-analytics" component={PublishingAnalytics} />
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />
       </Switch>

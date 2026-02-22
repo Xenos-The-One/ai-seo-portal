@@ -26,6 +26,7 @@ import { useRoute, Link } from "wouter";
 import { Streamdown } from "streamdown";
 import { WordPressPublish } from "@/components/WordPressPublish";
 import { ManusPublish } from "@/components/ManusPublish";
+import { BulkPublish } from "@/components/BulkPublish";
 
 export default function ContentDetail() {
   const [, params] = useRoute("/content/:id");
@@ -428,6 +429,9 @@ export default function ContentDetail() {
               </CardContent>
             </Card>
           )}
+
+          {/* Bulk Publishing */}
+          <BulkPublish contentId={contentId} clientId={content.clientId} />
 
           {/* WordPress Publishing */}
           <WordPressPublish contentId={contentId} clientId={content.clientId} />

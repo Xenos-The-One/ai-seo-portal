@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Users, FileText, BarChart3, Zap, Calendar, CalendarDays, Layers, MessageSquare, TrendingUp, Copy, GitBranch, Sparkles, Webhook, ClipboardList, Shield, Bell, Search, Settings, UserPlus, RefreshCw, FlaskConical, Target, CheckCircle } from "lucide-react";
+import { LayoutDashboard, LogOut, PanelLeft, Users, FileText, BarChart3, Zap, Calendar, CalendarDays, Layers, MessageSquare, TrendingUp, Copy, GitBranch, Sparkles, Webhook, ClipboardList, Shield, Bell, Search, Settings, UserPlus, RefreshCw, FlaskConical, Target, CheckCircle, Palette, Activity } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
@@ -48,10 +48,12 @@ const menuItems = [
   { icon: TrendingUp, label: "Analytics", path: "/analytics" },
   { icon: Copy, label: "Repurposing", path: "/repurposing" },
   { icon: Webhook, label: "Publishing", path: "/publishing" },
+  { icon: Activity, label: "Publishing Analytics", path: "/publishing-analytics" },
   { icon: ClipboardList, label: "Briefs", path: "/briefs" },
   { icon: Bell, label: "Notifications", path: "/notifications" },
   { icon: Shield, label: "Client Portal", path: "/client-portal" },
   { icon: BarChart3, label: "Reports", path: "/reports" },
+  { icon: Palette, label: "Design Standards", path: "/design-standards" },
   { icon: Settings, label: "Settings", path: "/settings" },
 ];
 

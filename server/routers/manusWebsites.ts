@@ -31,6 +31,7 @@ export const manusWebsitesRouter = router({
       projectDescription: z.string().optional(),
       template: z.enum(["web-static", "web-db-user"]).default("web-static"),
       features: z.array(z.string()).optional(),
+      designStandardId: z.number().optional(), // Optional design standard to apply
     }))
     .mutation(async ({ ctx, input }) => {
       try {

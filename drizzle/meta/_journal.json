@@ -134,6 +134,20 @@
       "when": 1771727636361,
       "tag": "0018_daily_dazzler",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "5",
+      "when": 1771729480808,
+      "tag": "0019_dizzy_iron_lad",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "5",
+      "when": 1771729639999,
+      "tag": "0020_whole_sharon_carter",
+      "breakpoints": true
     }
   ]
 }

@@ -566,3 +566,59 @@ export const manusPublishHistory = mysqlTable("manusPublishHistory", {
 
 export type ManusPublishHistory = typeof manusPublishHistory.$inferSelect;
 export type InsertManusPublishHistory = typeof manusPublishHistory.$inferInsert;
+
+/**
+ * Design Standards table - stores agency design guidelines for Manus website creation
+ */
+export const designStandards = mysqlTable("designStandards", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(), // e.g., "Takeoff Premium Design"
+  description: text("description"),
+  designPrompt: text("designPrompt").notNull(), // Full design prompt/guidelines
+  
+  // Design characteristics
+  referenceUrl: text("referenceUrl"), // Reference website URL
+  colorScheme: varchar("colorScheme", { length: 100 }), // e.g., "dark", "light", "gradient"
+  designStyle: varchar("designStyle", { length: 100 }), // e.g., "motion-driven", "minimal", "luxury"
+  
+  isDefault: int("isDefault").default(0).notNull(), // 1 = default standard, 0 = optional
+  isActive: int("isActive").default(1).notNull(),
+  
+  createdBy: int("createdBy").notNull().references(() => users.id),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type DesignStandard = typeof designStandards.$inferSelect;
+export type InsertDesignStandard = typeof designStandards.$inferInsert;
+
+/**
+ * Publishing Schedules table - stores scheduled publishing tasks
+ */
+export const publishingSchedules = mysqlTable("publishingSchedules", {
+  id: int("id").autoincrement().primaryKey(),
+  contentId: int("contentId").notNull().references(() => content.id, { onDelete: "cascade" }),
+  
+  // Publishing targets
+  publishToWordPress: int("publishToWordPress").default(0).notNull(), // 1 = yes, 0 = no
+  wordpressConnectionIds: text("wordpressConnectionIds"), // JSON array of connection IDs
+  wordpressStatus: mysqlEnum("wordpressStatus", ["draft", "publish", "pending"]).default("draft"),
+  
+  publishToManus: int("publishToManus").default(0).notNull(), // 1 = yes, 0 = no
+  manusWebsiteIds: text("manusWebsiteIds"), // JSON array of website IDs
+  
+  // Schedule details
+  scheduledFor: timestamp("scheduledFor").notNull(), // When to publish
+  status: mysqlEnum("status", ["pending", "processing", "completed", "failed"]).default("pending").notNull(),
+  
+  // Execution tracking
+  executedAt: timestamp("executedAt"),
+  errorMessage: text("errorMessage"),
+  
+  createdBy: int("createdBy").notNull().references(() => users.id),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type PublishingSchedule = typeof publishingSchedules.$inferSelect;
+export type InsertPublishingSchedule = typeof publishingSchedules.$inferInsert;
