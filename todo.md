@@ -125,3 +125,13 @@
 - [x] Add regenerate button to content detail page
 - [ ] Create bulk regeneration UI for multiple content items (optional enhancement)
 - [x] Write tests for all new features
+
+## Round 13 Productivity Enhancements
+- [x] Implement bulk content operations with multi-select checkboxes
+- [x] Add bulk delete, bulk status change, bulk regenerate actions
+- [x] Create A/B testing workflow for comparing model outputs
+- [x] Add side-by-side comparison view for A/B test results
+- [x] Implement content templates library with pre-built formats
+- [x] Add template categories (product reviews, how-to guides, listicles, etc.)
+- [x] Create template editor for custom templates
+- [x] Write tests for all new features

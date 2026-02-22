@@ -133,7 +133,7 @@ export const contentTemplates = mysqlTable("contentTemplates", {
   id: int("id").autoincrement().primaryKey(),
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
-  type: mysqlEnum("type", ["how-to", "listicle", "case-study", "guide", "news", "custom"]).notNull(),
+  category: mysqlEnum("category", ["product-review", "how-to", "listicle", "case-study", "comparison", "tutorial", "news", "opinion", "custom"]).notNull(),
   prompt: text("prompt").notNull(),
   structure: text("structure"),
   createdBy: int("createdBy").notNull().references(() => users.id),
@@ -340,3 +340,46 @@ export const recurringPlans = mysqlTable("recurringPlans", {
 
 export type RecurringPlan = typeof recurringPlans.$inferSelect;
 export type InsertRecurringPlan = typeof recurringPlans.$inferInsert;
+
+/**
+ * A/B Testing table - stores A/B test experiments comparing different AI models
+ */
+export const abTests = mysqlTable("abTests", {
+  id: int("id").autoincrement().primaryKey(),
+  clientId: int("clientId").notNull().references(() => clients.id, { onDelete: "cascade" }),
+  topic: text("topic").notNull(),
+  customPrompt: text("customPrompt"),
+  enableWebResearch: int("enableWebResearch").notNull().default(0),
+  shouldGenerateImage: int("shouldGenerateImage").notNull().default(0),
+  
+  // Version A
+  modelA: varchar("modelA", { length: 100 }).notNull(),
+  contentA: text("contentA"),
+  titleA: text("titleA"),
+  imageUrlA: text("imageUrlA"),
+  wordCountA: int("wordCountA").default(0),
+  generationTimeMsA: int("generationTimeMsA").default(0),
+  inputTokensA: int("inputTokensA").default(0),
+  outputTokensA: int("outputTokensA").default(0),
+  
+  // Version B
+  modelB: varchar("modelB", { length: 100 }).notNull(),
+  contentB: text("contentB"),
+  titleB: text("titleB"),
+  imageUrlB: text("imageUrlB"),
+  wordCountB: int("wordCountB").default(0),
+  generationTimeMsB: int("generationTimeMsB").default(0),
+  inputTokensB: int("inputTokensB").default(0),
+  outputTokensB: int("outputTokensB").default(0),
+  
+  // Results
+  winner: mysqlEnum("winner", ["A", "B", "none"]).default("none"),
+  notes: text("notes"),
+  
+  createdBy: int("createdBy").notNull().references(() => users.id),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ABTest = typeof abTests.$inferSelect;
+export type InsertABTest = typeof abTests.$inferInsert;

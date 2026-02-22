@@ -85,6 +85,20 @@
       "when": 1771717164324,
       "tag": "0011_puzzling_xavin",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "5",
+      "when": 1771718078347,
+      "tag": "0012_skinny_bishop",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "5",
+      "when": 1771718286224,
+      "tag": "0013_steady_wrecker",
+      "breakpoints": true
     }
   ]
 }

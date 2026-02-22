@@ -97,7 +97,7 @@ export default function CommandPalette() {
     () =>
       templatesList?.map((t) => ({
         name: t.name,
-        description: t.type || "",
+        description: t.category || "",
         path: "/templates",
         icon: LayoutTemplate,
       })) || [],

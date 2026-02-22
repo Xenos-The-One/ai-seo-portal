@@ -29,6 +29,7 @@ import Notifications from "./pages/Notifications";
 import Settings from "./pages/Settings";
 import ClientOnboarding from "./pages/ClientOnboarding";
 import RecurringPlans from "./pages/RecurringPlans";
+import ABTesting from "./pages/ABTesting";
 import CommandPalette from "./components/CommandPalette";
 
 function DashboardRouter() {
@@ -58,6 +59,7 @@ function DashboardRouter() {
         <Route path="/settings" component={Settings} />
         <Route path="/onboarding" component={ClientOnboarding} />
         <Route path="/recurring-plans" component={RecurringPlans} />
+        <Route path="/ab-testing" component={ABTesting} />
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />
       </Switch>

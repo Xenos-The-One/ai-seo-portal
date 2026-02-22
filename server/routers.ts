@@ -541,6 +541,114 @@ export const appRouter = router({
   agencySettings: agencySettingsRouter,
   recurringPlans: recurringPlansRouter,
 
+  // A/B Testing
+  abTests: router({
+    list: protectedProcedure.query(async () => {
+      const { listABTests } = await import("./abTesting");
+      return await listABTests();
+    }),
+    getById: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        const { getABTestById } = await import("./abTesting");
+        return await getABTestById(input.id);
+      }),
+    create: protectedProcedure
+      .input(z.object({
+        clientId: z.number(),
+        topic: z.string(),
+        customPrompt: z.string().optional(),
+        enableWebResearch: z.boolean().default(false),
+        shouldGenerateImage: z.boolean().default(false),
+        modelA: z.string(),
+        modelB: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { createABTest, updateABTestResults } = await import("./abTesting");
+        const { calculateWordCount } = await import("./modelPerformance");
+        
+        // Create A/B test record
+        const testId = await createABTest({
+          ...input,
+          createdBy: ctx.user.id,
+        });
+
+        // Generate both versions
+        const systemPrompt = input.customPrompt || "You are an expert SEO content writer. Create engaging, well-structured blog posts that are informative and optimized for search engines.";
+        const userPrompt = `Write a comprehensive blog post about: ${input.topic}`;
+
+        // Generate Version A
+        const startTimeA = Date.now();
+        const responseA = await invokeLLM({
+          model: input.modelA,
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
+          ],
+        });
+        const contentA = typeof responseA.choices[0]?.message?.content === 'string' 
+          ? responseA.choices[0].message.content 
+          : "";
+        const titleA = contentA.split("\n").filter(l => l.trim())[0]?.replace(/^#\s*/, "").substring(0, 500) || input.topic;
+        const generationTimeMsA = Date.now() - startTimeA;
+
+        await updateABTestResults(testId, {
+          version: "A",
+          content: contentA,
+          title: titleA,
+          wordCount: calculateWordCount(contentA),
+          generationTimeMs: generationTimeMsA,
+          inputTokens: responseA.usage?.prompt_tokens || 0,
+          outputTokens: responseA.usage?.completion_tokens || 0,
+        });
+
+        // Generate Version B
+        const startTimeB = Date.now();
+        const responseB = await invokeLLM({
+          model: input.modelB,
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
+          ],
+        });
+        const contentB = typeof responseB.choices[0]?.message?.content === 'string' 
+          ? responseB.choices[0].message.content 
+          : "";
+        const titleB = contentB.split("\n").filter(l => l.trim())[0]?.replace(/^#\s*/, "").substring(0, 500) || input.topic;
+        const generationTimeMsB = Date.now() - startTimeB;
+
+        await updateABTestResults(testId, {
+          version: "B",
+          content: contentB,
+          title: titleB,
+          wordCount: calculateWordCount(contentB),
+          generationTimeMs: generationTimeMsB,
+          inputTokens: responseB.usage?.prompt_tokens || 0,
+          outputTokens: responseB.usage?.completion_tokens || 0,
+        });
+
+        return { id: testId };
+      }),
+    setWinner: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        winner: z.enum(["A", "B"]),
+        notes: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { setABTestWinner } = await import("./abTesting");
+        await setABTestWinner(input.id, input.winner, input.notes);
+        return { success: true };
+      }),
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        const { deleteABTest } = await import("./abTesting");
+        await deleteABTest(input.id);
+        return { success: true };
+      }),
+  }),
+
   // TODO: add feature routers here, e.g.
   // todo: router({
   //   list: protectedProcedure.query(({ ctx }) =>

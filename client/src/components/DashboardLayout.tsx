@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Users, FileText, BarChart3, Zap, Calendar, Layers, MessageSquare, TrendingUp, Copy, GitBranch, Sparkles, Webhook, ClipboardList, Shield, Bell, Search, Settings, UserPlus, RefreshCw } from "lucide-react";
+import { LayoutDashboard, LogOut, PanelLeft, Users, FileText, BarChart3, Zap, Calendar, Layers, MessageSquare, TrendingUp, Copy, GitBranch, Sparkles, Webhook, ClipboardList, Shield, Bell, Search, Settings, UserPlus, RefreshCw, FlaskConical } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
@@ -35,6 +35,7 @@ const menuItems = [
   { icon: Zap, label: "Bulk Generation", path: "/bulk" },
   { icon: Calendar, label: "Scheduling", path: "/scheduling" },
   { icon: RefreshCw, label: "Recurring Plans", path: "/recurring-plans" },
+  { icon: FlaskConical, label: "A/B Testing", path: "/ab-testing" },
   { icon: Layers, label: "Templates", path: "/templates" },
   { icon: MessageSquare, label: "Collaboration", path: "/collaboration" },
   { icon: GitBranch, label: "Version History", path: "/version-history" },

@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, FileText, Loader2, Image as ImageIcon } from "lucide-react";
+import { Plus, FileText, Loader2, Image as ImageIcon, Trash2, RefreshCw, CheckSquare } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Link } from "wouter";
@@ -28,6 +28,8 @@ export default function Content() {
   const [isGenerateOpen, setIsGenerateOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterClient, setFilterClient] = useState<string>("all");
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [showBulkActions, setShowBulkActions] = useState(false);
   const [formData, setFormData] = useState({
     clientId: "",
     topic: "",
@@ -225,6 +227,23 @@ export default function Content() {
         </Dialog>
       </div>
 
+      {/* Bulk Actions Bar */}
+      {selectedIds.length > 0 && (
+        <div className="mb-4 p-4 bg-primary/10 border border-primary/20 rounded-lg flex items-center justify-between">
+          <span className="text-sm font-medium">
+            {selectedIds.length} item{selectedIds.length > 1 ? "s" : ""} selected
+          </span>
+          <div className="flex gap-2">
+            <BulkStatusChange selectedIds={selectedIds} onSuccess={() => { setSelectedIds([]); refetch(); }} />
+            <BulkRegenerate selectedIds={selectedIds} onSuccess={() => { setSelectedIds([]); refetch(); }} />
+            <BulkDelete selectedIds={selectedIds} onSuccess={() => { setSelectedIds([]); refetch(); }} />
+            <Button variant="outline" size="sm" onClick={() => setSelectedIds([])}>
+              Clear Selection
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Filters */}
       <div className="flex gap-4 mb-6">
         <Select value={filterStatus} onValueChange={setFilterStatus}>
@@ -261,8 +280,20 @@ export default function Content() {
       ) : filteredContent && filteredContent.length > 0 ? (
         <div className="grid grid-cols-1 gap-6">
           {filteredContent.map((item) => (
-            <Link key={item.content.id} href={`/content/${item.content.id}`}>
-              <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+            <Card key={item.content.id} className="hover:shadow-lg transition-shadow relative">
+              <div className="absolute top-4 left-4 z-10" onClick={(e) => e.stopPropagation()}>
+                <Checkbox
+                  checked={selectedIds.includes(item.content.id)}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      setSelectedIds([...selectedIds, item.content.id]);
+                    } else {
+                      setSelectedIds(selectedIds.filter(id => id !== item.content.id));
+                    }
+                  }}
+                />
+              </div>
+              <Link href={`/content/${item.content.id}`}>
                 <CardContent className="p-6">
                   <div className="flex gap-6">
                     {item.content.imageUrl ? (
@@ -309,8 +340,8 @@ export default function Content() {
                     </div>
                   </div>
                 </CardContent>
-              </Card>
-            </Link>
+              </Link>
+            </Card>
           ))}
         </div>
       ) : (
@@ -329,5 +360,229 @@ export default function Content() {
         </Card>
       )}
     </div>
+  );
+}
+
+// Bulk Delete Component
+function BulkDelete({ selectedIds, onSuccess }: { selectedIds: number[]; onSuccess: () => void }) {
+  const [showConfirm, setShowConfirm] = useState(false);
+  const deleteMutation = trpc.content.delete.useMutation();
+
+  const handleBulkDelete = async () => {
+    try {
+      for (const id of selectedIds) {
+        await deleteMutation.mutateAsync({ id });
+      }
+      toast.success(`${selectedIds.length} item(s) deleted successfully`);
+      setShowConfirm(false);
+      onSuccess();
+    } catch {
+      toast.error("Failed to delete items");
+    }
+  };
+
+  return (
+    <>
+      <Button variant="destructive" size="sm" onClick={() => setShowConfirm(true)}>
+        <Trash2 className="h-4 w-4 mr-2" />
+        Delete
+      </Button>
+      {showConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-md">
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Confirm Bulk Delete</h3>
+              <p className="text-sm text-muted-foreground mb-6">
+                Are you sure you want to delete {selectedIds.length} item(s)? This action cannot be undone.
+              </p>
+              <div className="flex gap-2 justify-end">
+                <Button variant="outline" onClick={() => setShowConfirm(false)}>
+                  Cancel
+                </Button>
+                <Button variant="destructive" onClick={handleBulkDelete} disabled={deleteMutation.isPending}>
+                  {deleteMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-4 w-4 mr-2" />
+                  )}
+                  Delete
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+    </>
+  );
+}
+
+// Bulk Status Change Component
+function BulkStatusChange({ selectedIds, onSuccess }: { selectedIds: number[]; onSuccess: () => void }) {
+  const [showDialog, setShowDialog] = useState(false);
+  const [newStatus, setNewStatus] = useState<"draft" | "in_progress" | "approved">("draft");
+  const updateMutation = trpc.content.update.useMutation();
+
+  const handleBulkStatusChange = async () => {
+    try {
+      for (const id of selectedIds) {
+        await updateMutation.mutateAsync({ id, status: newStatus });
+      }
+      toast.success(`${selectedIds.length} item(s) status updated to ${newStatus}`);
+      setShowDialog(false);
+      onSuccess();
+    } catch {
+      toast.error("Failed to update status");
+    }
+  };
+
+  return (
+    <>
+      <Button variant="outline" size="sm" onClick={() => setShowDialog(true)}>
+        <CheckSquare className="h-4 w-4 mr-2" />
+        Change Status
+      </Button>
+      {showDialog && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-md">
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Bulk Status Change</h3>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="bulk-status">New Status</Label>
+                  <Select value={newStatus} onValueChange={(val: any) => setNewStatus(val)}>
+                    <SelectTrigger id="bulk-status">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="draft">Draft</SelectItem>
+                      <SelectItem value="in_progress">In Progress</SelectItem>
+                      <SelectItem value="approved">Approved</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  This will update {selectedIds.length} item(s) to {newStatus} status.
+                </p>
+              </div>
+              <div className="flex gap-2 justify-end mt-6">
+                <Button variant="outline" onClick={() => setShowDialog(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleBulkStatusChange} disabled={updateMutation.isPending}>
+                  {updateMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <CheckSquare className="h-4 w-4 mr-2" />
+                  )}
+                  Update Status
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+    </>
+  );
+}
+
+// Bulk Regenerate Component
+function BulkRegenerate({ selectedIds, onSuccess }: { selectedIds: number[]; onSuccess: () => void }) {
+  const [showDialog, setShowDialog] = useState(false);
+  const [aiModel, setAiModel] = useState("gemini-2.5-flash");
+  const [enableWebResearch, setEnableWebResearch] = useState(false);
+  const [shouldGenerateImage, setShouldGenerateImage] = useState(false);
+  const regenerateMutation = trpc.content.regenerate.useMutation();
+
+  const handleBulkRegenerate = async () => {
+    try {
+      toast.info(`Regenerating ${selectedIds.length} item(s)... This may take a while`);
+      for (const id of selectedIds) {
+        await regenerateMutation.mutateAsync({
+          id,
+          aiModel,
+          enableWebResearch,
+          shouldGenerateImage,
+        });
+      }
+      toast.success(`${selectedIds.length} item(s) regenerated successfully`);
+      setShowDialog(false);
+      onSuccess();
+    } catch {
+      toast.error("Failed to regenerate items");
+    }
+  };
+
+  return (
+    <>
+      <Button variant="outline" size="sm" onClick={() => setShowDialog(true)}>
+        <RefreshCw className="h-4 w-4 mr-2" />
+        Regenerate
+      </Button>
+      {showDialog && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-md">
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Bulk Regenerate</h3>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="bulk-model">AI Model</Label>
+                  <Select value={aiModel} onValueChange={setAiModel}>
+                    <SelectTrigger id="bulk-model">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet</SelectItem>
+                      <SelectItem value="claude-3-5-haiku-20241022">Claude 3.5 Haiku</SelectItem>
+                      <SelectItem value="gpt-4o">GPT-4o</SelectItem>
+                      <SelectItem value="gpt-4o-mini">GPT-4o Mini</SelectItem>
+                      <SelectItem value="gemini-2.5-flash">Gemini 2.5 Flash</SelectItem>
+                      <SelectItem value="gemini-2.5-pro">Gemini 2.5 Pro</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="bulk-research"
+                    checked={enableWebResearch}
+                    onCheckedChange={(checked: boolean) => setEnableWebResearch(checked)}
+                  />
+                  <Label htmlFor="bulk-research" className="cursor-pointer">
+                    Enable web research
+                  </Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="bulk-image"
+                    checked={shouldGenerateImage}
+                    onCheckedChange={(checked: boolean) => setShouldGenerateImage(checked)}
+                  />
+                  <Label htmlFor="bulk-image" className="cursor-pointer">
+                    Generate new images
+                  </Label>
+                </div>
+                <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+                  <p className="text-sm text-yellow-400">
+                    Warning: This will regenerate {selectedIds.length} item(s). This may take several minutes.
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-2 justify-end mt-6">
+                <Button variant="outline" onClick={() => setShowDialog(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleBulkRegenerate} disabled={regenerateMutation.isPending}>
+                  {regenerateMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                  )}
+                  Regenerate
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+    </>
   );
 }

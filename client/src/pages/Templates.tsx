@@ -24,11 +24,14 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 const TEMPLATE_TYPES = [
+  { value: "product-review", label: "Product Review" },
   { value: "how-to", label: "How-To Guide" },
   { value: "listicle", label: "Listicle" },
   { value: "case-study", label: "Case Study" },
-  { value: "guide", label: "Guide" },
+  { value: "comparison", label: "Comparison" },
+  { value: "tutorial", label: "Tutorial" },
   { value: "news", label: "News" },
+  { value: "opinion", label: "Opinion/Editorial" },
   { value: "custom", label: "Custom" },
 ];
 
@@ -46,32 +49,33 @@ export default function Templates() {
   const [formData, setFormData] = useState<{
     name: string;
     description: string;
-    type: "how-to" | "listicle" | "case-study" | "guide" | "news" | "custom";
+    category: "product-review" | "how-to" | "listicle" | "case-study" | "comparison" | "tutorial" | "news" | "opinion" | "custom";
     prompt: string;
     isPublic: boolean;
   }>({
     name: "",
     description: "",
-    type: "custom",
+    category: "custom",
     prompt: "",
     isPublic: false,
   });
 
-  const { data: templates } = trpc.templates.list.useQuery();
+  const { data: templates, refetch } = trpc.templates.list.useQuery();
   const createMutation = trpc.templates.create.useMutation();
   const deleteMutation = trpc.templates.delete.useMutation();
+  const seedMutation = trpc.templates.seedDefaults.useMutation();
 
-  const handleTypeChange = (type: "how-to" | "listicle" | "case-study" | "guide" | "news" | "custom") => {
+  const handleCategoryChange = (category: "product-review" | "how-to" | "listicle" | "case-study" | "comparison" | "tutorial" | "news" | "opinion" | "custom") => {
     setFormData({
       ...formData,
-      type,
-      prompt: DEFAULT_PROMPTS[type] || "",
+      category,
+      prompt: DEFAULT_PROMPTS[category] || "",
     });
   };
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.type || !formData.prompt) {
+    if (!formData.name || !formData.category || !formData.prompt) {
       toast.error("Please fill in all required fields");
       return;
     }
@@ -80,12 +84,12 @@ export default function Templates() {
       await createMutation.mutateAsync({
         name: formData.name,
         description: formData.description,
-        type: formData.type,
+        category: formData.category,
         prompt: formData.prompt,
         isPublic: formData.isPublic ? 1 : 0,
       });
       toast.success("Template created successfully");
-      setFormData({ name: "", description: "", type: "custom", prompt: "", isPublic: false });
+      setFormData({ name: "", description: "", category: "custom", prompt: "", isPublic: false });
       setIsOpen(false);
     } catch (error) {
       toast.error("Failed to create template");
@@ -111,13 +115,36 @@ export default function Templates() {
             Create and manage reusable content templates
           </p>
         </div>
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              New Template
+        <div className="flex gap-2">
+          {(!templates || templates.length === 0) && (
+            <Button
+              variant="outline"
+              onClick={async () => {
+                try {
+                  const result = await seedMutation.mutateAsync();
+                  toast.success(result.message);
+                  refetch();
+                } catch {
+                  toast.error("Failed to load templates");
+                }
+              }}
+              disabled={seedMutation.isPending}
+            >
+              {seedMutation.isPending ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Copy className="h-4 w-4 mr-2" />
+              )}
+              Load Pre-built Templates
             </Button>
-          </DialogTrigger>
+          )}
+          <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                New Template
+              </Button>
+            </DialogTrigger>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Create New Template</DialogTitle>
@@ -145,7 +172,7 @@ export default function Templates() {
               </div>
               <div>
                 <Label htmlFor="type">Content Type *</Label>
-                <Select value={formData.type} onValueChange={handleTypeChange}>
+                <Select value={formData.category} onValueChange={handleCategoryChange}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -199,6 +226,7 @@ export default function Templates() {
             </form>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -209,7 +237,7 @@ export default function Templates() {
                 <div className="flex-1">
                   <CardTitle className="text-lg">{template.name}</CardTitle>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {TEMPLATE_TYPES.find((t) => t.value === template.type)?.label}
+                    {TEMPLATE_TYPES.find((t) => t.value === template.category)?.label}
                   </p>
                 </div>
                 {template.isPublic === 1 && (

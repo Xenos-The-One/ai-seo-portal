@@ -1,0 +1,2 @@
+ALTER TABLE `contentTemplates` ADD `category` enum('product-review','how-to','listicle','case-study','comparison','tutorial','news','opinion','custom') NOT NULL;--> statement-breakpoint
+ALTER TABLE `contentTemplates` DROP COLUMN `type`;
