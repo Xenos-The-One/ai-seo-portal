@@ -183,3 +183,19 @@
 - [ ] Create publishing configuration UI for API credentials
 - [ ] Add publish scheduling with automatic CMS posting
 - [ ] Write comprehensive tests for all new integrations
+
+## Round 17 Portal Invitation UI
+- [x] Add portal invitation management section to ClientDetail page
+- [x] Show list of existing portal users for the client
+- [x] Add "Invite User" button and dialog
+- [x] Display invitation links and tokens
+- [x] Add deactivate user functionality
+
+
+## Round 18 Complete Client Portal Features
+- [x] Build client-facing content list page with filtering
+- [x] Add content detail view with approve/request revision actions
+- [x] Build client-facing calendar view with scheduled content
+- [x] Build client-facing performance dashboard with metrics
+- [ ] Implement portal branding customization in settings
+- [x] Test all portal features end-to-end

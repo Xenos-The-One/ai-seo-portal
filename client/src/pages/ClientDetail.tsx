@@ -28,6 +28,9 @@ import {
   FileText,
   DollarSign,
   AlertCircle,
+  UserPlus,
+  Copy,
+  Trash2,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useParams, useLocation } from "wouter";
@@ -209,6 +212,10 @@ export default function ClientDetail() {
           <TabsTrigger value="budget" className="gap-2">
             <DollarSign className="h-4 w-4" />
             Budget
+          </TabsTrigger>
+          <TabsTrigger value="portal" className="gap-2">
+            <UserPlus className="h-4 w-4" />
+            Portal Access
           </TabsTrigger>
         </TabsList>
 
@@ -490,6 +497,11 @@ export default function ClientDetail() {
         <TabsContent value="budget">
           <BudgetTab clientId={clientId} clientName={client.name} />
         </TabsContent>
+
+        {/* Portal Access Tab */}
+        <TabsContent value="portal">
+          <PortalAccessTab clientId={clientId} clientName={client.name} />
+        </TabsContent>
       </Tabs>
     </div>
   );
@@ -650,6 +662,258 @@ function BudgetTab({ clientId, clientName }: { clientId: number; clientName: str
             )}
           </CardContent>
         </Card>
+      )}
+    </div>
+  );
+}
+
+
+// Portal Access Tab Component
+function PortalAccessTab({ clientId, clientName }: { clientId: number; clientName: string }) {
+  const [showInviteDialog, setShowInviteDialog] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteName, setInviteName] = useState("");
+  const [inviteRole, setInviteRole] = useState<"client_admin" | "client_viewer">("client_viewer");
+  const [lastInvitation, setLastInvitation] = useState<any>(null);
+
+  const { data: portalUsers, refetch } = trpc.clientPortal.listUsers.useQuery({ clientId });
+  const createInvitationMutation = trpc.clientPortal.createInvitation.useMutation();
+  const deactivateUserMutation = trpc.clientPortal.deactivateUser.useMutation();
+
+  const handleSendInvitation = async () => {
+    if (!inviteEmail || !inviteName) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+
+    try {
+      const result = await createInvitationMutation.mutateAsync({
+        clientId,
+        email: inviteEmail,
+        name: inviteName,
+        role: inviteRole,
+      });
+
+      setLastInvitation(result);
+      toast.success(`Invitation sent to ${inviteEmail}`);
+      setInviteEmail("");
+      setInviteName("");
+      setShowInviteDialog(false);
+      refetch();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to send invitation");
+    }
+  };
+
+  const handleDeactivateUser = async (userId: number, userName: string) => {
+    if (!confirm(`Are you sure you want to deactivate ${userName}'s portal access?`)) {
+      return;
+    }
+
+    try {
+      await deactivateUserMutation.mutateAsync({ userId });
+      toast.success(`${userName}'s portal access has been deactivated`);
+      refetch();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to deactivate user");
+    }
+  };
+
+  const copyInvitationLink = (token: string) => {
+    const inviteUrl = `${window.location.origin}/portal/accept-invitation?token=${token}`;
+    navigator.clipboard.writeText(inviteUrl);
+    toast.success("Invitation link copied to clipboard");
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Portal Overview */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <UserPlus className="h-5 w-5" />
+                Client Portal Access
+              </CardTitle>
+              <p className="text-sm text-muted-foreground mt-1">
+                Invite {clientName} team members to access their content portal
+              </p>
+            </div>
+            <Button onClick={() => setShowInviteDialog(true)}>
+              <UserPlus className="h-4 w-4 mr-2" />
+              Invite User
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="bg-muted/30 p-4 rounded-lg">
+            <h4 className="font-medium mb-2">Portal URL</h4>
+            <div className="flex items-center gap-2">
+              <code className="flex-1 bg-background px-3 py-2 rounded text-sm">
+                {window.location.origin}/portal
+              </code>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  navigator.clipboard.writeText(`${window.location.origin}/portal`);
+                  toast.success("Portal URL copied");
+                }}
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Last Invitation */}
+      {lastInvitation && (
+        <Card className="border-primary/50">
+          <CardHeader>
+            <CardTitle className="text-base">Recent Invitation</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div>
+              <Label className="text-xs text-muted-foreground">Invited User</Label>
+              <p className="font-medium">{lastInvitation.name} ({lastInvitation.email})</p>
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground">Invitation Link</Label>
+              <div className="flex items-center gap-2 mt-1">
+                <code className="flex-1 bg-muted px-3 py-2 rounded text-xs overflow-x-auto">
+                  {window.location.origin}/portal/accept-invitation?token={lastInvitation.token}
+                </code>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => copyInvitationLink(lastInvitation.token)}
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                Share this link with the user to complete their registration
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Active Portal Users */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Active Portal Users</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {!portalUsers || portalUsers.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <UserPlus className="h-12 w-12 mx-auto mb-3 opacity-50" />
+              <p>No portal users yet</p>
+              <p className="text-sm mt-1">Invite team members to access the client portal</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {portalUsers.map((user: any) => (
+                <div
+                  key={user.id}
+                  className="flex items-center justify-between p-4 border rounded-lg"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <User className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-medium">{user.name}</p>
+                      <p className="text-sm text-muted-foreground">{user.email}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Badge variant={user.role === "client_admin" ? "default" : "secondary"}>
+                      {user.role === "client_admin" ? "Admin" : "Viewer"}
+                    </Badge>
+                    <Badge variant={user.isActive ? "default" : "secondary"}>
+                      {user.isActive ? "Active" : "Inactive"}
+                    </Badge>
+                    {user.isActive && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeactivateUser(user.id, user.name)}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Invite Dialog */}
+      {showInviteDialog && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <CardTitle>Invite User to Portal</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Send an invitation to access the client portal
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="invite-name">Name</Label>
+                <Input
+                  id="invite-name"
+                  placeholder="John Doe"
+                  value={inviteName}
+                  onChange={(e) => setInviteName(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="invite-email">Email</Label>
+                <Input
+                  id="invite-email"
+                  type="email"
+                  placeholder="john@example.com"
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="invite-role">Role</Label>
+                <select
+                  id="invite-role"
+                  className="w-full px-3 py-2 border rounded-md bg-background"
+                  value={inviteRole}
+                  onChange={(e) => setInviteRole(e.target.value as "client_admin" | "client_viewer")}
+                >
+                  <option value="client_viewer">Viewer - Can view and approve content</option>
+                  <option value="client_admin">Admin - Full portal access</option>
+                </select>
+              </div>
+              <div className="flex gap-2 pt-4">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => setShowInviteDialog(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  className="flex-1"
+                  onClick={handleSendInvitation}
+                  disabled={createInvitationMutation.isPending}
+                >
+                  {createInvitationMutation.isPending ? "Sending..." : "Send Invitation"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       )}
     </div>
   );

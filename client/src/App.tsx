@@ -36,6 +36,10 @@ import Approvals from "./pages/Approvals";
 import Performance from "./pages/Performance";
 import PortalLogin from "./pages/portal/PortalLogin";
 import PortalDashboard from "./pages/portal/PortalDashboard";
+import PortalContent from "./pages/portal/PortalContent";
+import PortalContentDetail from "./pages/portal/PortalContentDetail";
+import PortalCalendar from "./pages/portal/PortalCalendar";
+import PortalPerformance from "./pages/portal/PortalPerformance";
 import CommandPalette from "./components/CommandPalette";
 
 function DashboardRouter() {
@@ -86,6 +90,10 @@ function Router() {
       {/* Client Portal Routes - separate from agency dashboard */}
       <Route path="/portal/login" component={PortalLogin} />
       <Route path="/portal/dashboard" component={PortalDashboard} />
+      <Route path="/portal/content/:id" component={PortalContentDetail} />
+      <Route path="/portal/content" component={PortalContent} />
+      <Route path="/portal/calendar" component={PortalCalendar} />
+      <Route path="/portal/performance" component={PortalPerformance} />
       <Route path="/portal" component={() => { window.location.href = "/portal/login"; return null; }} />
       
       {/* All other routes go through dashboard layout */}
