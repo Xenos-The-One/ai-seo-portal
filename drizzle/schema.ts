@@ -78,6 +78,46 @@ export type Client = typeof clients.$inferSelect;
 export type InsertClient = typeof clients.$inferInsert;
 
 /**
+ * Client Portal Users table - separate authentication for client-facing portal
+ */
+export const clientPortalUsers = mysqlTable("clientPortalUsers", {
+  id: int("id").autoincrement().primaryKey(),
+  clientId: int("clientId").notNull().references(() => clients.id, { onDelete: "cascade" }),
+  email: varchar("email", { length: 320 }).notNull().unique(),
+  passwordHash: text("passwordHash").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  role: mysqlEnum("role", ["client_admin", "client_viewer"]).default("client_viewer").notNull(),
+  isActive: int("isActive").default(1).notNull(), // 0 = inactive, 1 = active
+  invitationToken: varchar("invitationToken", { length: 255 }),
+  invitationExpiry: timestamp("invitationExpiry"),
+  lastLoginAt: timestamp("lastLoginAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ClientPortalUser = typeof clientPortalUsers.$inferSelect;
+export type InsertClientPortalUser = typeof clientPortalUsers.$inferInsert;
+
+/**
+ * Portal Branding table - customization settings for client portal
+ */
+export const portalBranding = mysqlTable("portalBranding", {
+  id: int("id").autoincrement().primaryKey(),
+  clientId: int("clientId").notNull().unique().references(() => clients.id, { onDelete: "cascade" }),
+  logoUrl: text("logoUrl"),
+  primaryColor: varchar("primaryColor", { length: 7 }).default("#3b82f6"), // Hex color
+  secondaryColor: varchar("secondaryColor", { length: 7 }).default("#1e40af"),
+  customDomain: varchar("customDomain", { length: 255 }),
+  portalName: varchar("portalName", { length: 255 }),
+  welcomeMessage: text("welcomeMessage"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type PortalBranding = typeof portalBranding.$inferSelect;
+export type InsertPortalBranding = typeof portalBranding.$inferInsert;
+
+/**
  * Content table - stores AI-generated blog posts and their metadata
  */
 export const content = mysqlTable("content", {

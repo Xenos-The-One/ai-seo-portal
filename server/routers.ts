@@ -617,6 +617,79 @@ export const appRouter = router({
       }),
   }),
 
+  // Client Portal Authentication
+  clientPortal: router({
+    // Invitation management
+    createInvitation: protectedProcedure
+      .input(z.object({
+        clientId: z.number(),
+        email: z.string().email(),
+        name: z.string(),
+        role: z.enum(["client_admin", "client_viewer"]).default("client_viewer"),
+      }))
+      .mutation(async ({ input }) => {
+        const { createClientPortalInvitation } = await import("./clientPortalAuth");
+        return await createClientPortalInvitation(input.clientId, input.email, input.name, input.role);
+      }),
+    
+    // Accept invitation (public endpoint)
+    acceptInvitation: publicProcedure
+      .input(z.object({
+        token: z.string(),
+        password: z.string().min(8),
+      }))
+      .mutation(async ({ input }) => {
+        const { acceptInvitation } = await import("./clientPortalAuth");
+        return await acceptInvitation(input.token, input.password);
+      }),
+    
+    // Login (public endpoint)
+    login: publicProcedure
+      .input(z.object({
+        email: z.string().email(),
+        password: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        const { loginClientPortalUser } = await import("./clientPortalAuth");
+        return await loginClientPortalUser(input.email, input.password);
+      }),
+    
+    // Get current user (requires client portal token)
+    me: publicProcedure.query(async ({ ctx }) => {
+      // This would need custom context handling for client portal tokens
+      // For now, return null if not authenticated
+      return null;
+    }),
+    
+    // List portal users for a client
+    listUsers: protectedProcedure
+      .input(z.object({ clientId: z.number() }))
+      .query(async ({ input }) => {
+        const { listClientPortalUsers } = await import("./clientPortalAuth");
+        return await listClientPortalUsers(input.clientId);
+      }),
+    
+    // Change password
+    changePassword: publicProcedure
+      .input(z.object({
+        userId: z.number(),
+        oldPassword: z.string(),
+        newPassword: z.string().min(8),
+      }))
+      .mutation(async ({ input }) => {
+        const { changeClientPortalPassword } = await import("./clientPortalAuth");
+        return await changeClientPortalPassword(input.userId, input.oldPassword, input.newPassword);
+      }),
+    
+    // Deactivate user
+    deactivateUser: protectedProcedure
+      .input(z.object({ userId: z.number() }))
+      .mutation(async ({ input }) => {
+        const { deactivateClientPortalUser } = await import("./clientPortalAuth");
+        return await deactivateClientPortalUser(input.userId);
+      }),
+  }),
+
   // Approval Workflow
   approvals: router({
     requestApproval: protectedProcedure

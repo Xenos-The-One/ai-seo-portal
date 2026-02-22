@@ -34,6 +34,8 @@ import Calendar from "./pages/Calendar";
 import KeywordResearch from "./pages/KeywordResearch";
 import Approvals from "./pages/Approvals";
 import Performance from "./pages/Performance";
+import PortalLogin from "./pages/portal/PortalLogin";
+import PortalDashboard from "./pages/portal/PortalDashboard";
 import CommandPalette from "./components/CommandPalette";
 
 function DashboardRouter() {
@@ -80,6 +82,12 @@ function Router() {
     <Switch>
       {/* Public brief submission form - no auth required */}
       <Route path="/brief/:token" component={BriefForm} />
+      
+      {/* Client Portal Routes - separate from agency dashboard */}
+      <Route path="/portal/login" component={PortalLogin} />
+      <Route path="/portal/dashboard" component={PortalDashboard} />
+      <Route path="/portal" component={() => { window.location.href = "/portal/login"; return null; }} />
+      
       {/* All other routes go through dashboard layout */}
       <Route component={DashboardRouter} />
     </Switch>
