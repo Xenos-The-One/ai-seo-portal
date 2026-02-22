@@ -30,6 +30,8 @@ import { seoAuditRouter } from "./routers/seoAudit";
 import { agencySettingsRouter } from "./routers/agencySettings";
 import { recurringPlansRouter } from "./routers/recurringPlans";
 import { googleAnalyticsRouter } from "./routers/googleAnalytics";
+import { wordpressRouter } from "./routers/wordpress";
+import { manusWebsitesRouter } from "./routers/manusWebsites";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -620,6 +622,8 @@ export const appRouter = router({
 
   // Google Analytics Integration
   googleAnalytics: googleAnalyticsRouter,
+  wordpress: wordpressRouter,
+  manusWebsites: manusWebsitesRouter,
 
   // Portal Branding
   portalBranding: router({

@@ -222,3 +222,18 @@
 - [x] Update Performance dashboard to display real GA data
 - [x] Update client portal Performance page to show real GA data
 - [x] Write tests for Google Analytics integration
+
+
+## Round 21 WordPress & Manus Website Management
+- [x] WordPress database schema (connections and publish history tables)
+- [x] WordPress router with connection management and publishing endpoints
+- [x] WordPress connections UI in ClientDetail page
+- [x] WordPress publish component in ContentDetail page
+- [x] WordPress integration tests (9 tests passing)
+- [x] Manus website management database schema
+- [x] Research Manus API for programmatic website creation
+- [x] Manus website management router
+- [x] Manus website creation UI in ClientDetail page
+- [x] Manus website list/dashboard view
+- [x] Content publishing to Manus websites
+- [x] Manus integration tests (9 tests passing)

@@ -24,6 +24,8 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useRoute, Link } from "wouter";
 import { Streamdown } from "streamdown";
+import { WordPressPublish } from "@/components/WordPressPublish";
+import { ManusPublish } from "@/components/ManusPublish";
 
 export default function ContentDetail() {
   const [, params] = useRoute("/content/:id");
@@ -426,6 +428,12 @@ export default function ContentDetail() {
               </CardContent>
             </Card>
           )}
+
+          {/* WordPress Publishing */}
+          <WordPressPublish contentId={contentId} clientId={content.clientId} />
+
+          {/* Manus Publishing */}
+          <ManusPublish contentId={contentId} clientId={content.clientId} />
         </div>
       </div>
     </div>

@@ -457,3 +457,112 @@ export const googleAnalyticsConnections = mysqlTable("googleAnalyticsConnections
 
 export type GoogleAnalyticsConnection = typeof googleAnalyticsConnections.$inferSelect;
 export type InsertGoogleAnalyticsConnection = typeof googleAnalyticsConnections.$inferInsert;
+
+/**
+ * WordPress Connections table - stores WordPress site credentials per client
+ */
+export const wordpressConnections = mysqlTable("wordpressConnections", {
+  id: int("id").autoincrement().primaryKey(),
+  clientId: int("clientId").notNull().references(() => clients.id, { onDelete: "cascade" }),
+  siteName: varchar("siteName", { length: 255 }).notNull(), // Friendly name for the site
+  siteUrl: varchar("siteUrl", { length: 500 }).notNull(), // WordPress site URL
+  
+  // WordPress REST API credentials
+  username: varchar("username", { length: 255 }).notNull(), // WordPress username
+  applicationPassword: text("applicationPassword").notNull(), // WordPress application password
+  
+  // Publishing settings
+  defaultStatus: mysqlEnum("defaultStatus", ["draft", "publish", "pending"]).default("draft").notNull(),
+  defaultAuthorId: int("defaultAuthorId"), // WordPress author ID
+  defaultCategoryId: int("defaultCategoryId"), // WordPress category ID
+  
+  isActive: int("isActive").default(1).notNull(), // 1 = active, 0 = inactive
+  lastPublishedAt: timestamp("lastPublishedAt"),
+  
+  createdBy: int("createdBy").notNull().references(() => users.id),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type WordPressConnection = typeof wordpressConnections.$inferSelect;
+export type InsertWordPressConnection = typeof wordpressConnections.$inferInsert;
+
+/**
+ * WordPress Publish History table - tracks content published to WordPress
+ */
+export const wordpressPublishHistory = mysqlTable("wordpressPublishHistory", {
+  id: int("id").autoincrement().primaryKey(),
+  contentId: int("contentId").notNull().references(() => content.id, { onDelete: "cascade" }),
+  connectionId: int("connectionId").notNull().references(() => wordpressConnections.id, { onDelete: "cascade" }),
+  
+  wordpressPostId: int("wordpressPostId").notNull(), // WordPress post ID
+  wordpressPostUrl: text("wordpressPostUrl"), // Full URL to the published post
+  publishStatus: mysqlEnum("publishStatus", ["draft", "publish", "pending"]).notNull(),
+  
+  success: int("success").default(1).notNull(), // 1 = success, 0 = failed
+  errorMessage: text("errorMessage"),
+  
+  publishedBy: int("publishedBy").notNull().references(() => users.id),
+  publishedAt: timestamp("publishedAt").defaultNow().notNull(),
+});
+
+export type WordPressPublishHistory = typeof wordpressPublishHistory.$inferSelect;
+export type InsertWordPressPublishHistory = typeof wordpressPublishHistory.$inferInsert;
+
+/**
+ * Manus Websites table - stores Manus-created websites for clients
+ */
+export const manusWebsites = mysqlTable("manusWebsites", {
+  id: int("id").autoincrement().primaryKey(),
+  clientId: int("clientId").notNull().references(() => clients.id, { onDelete: "cascade" }),
+  
+  // Manus project information
+  projectId: varchar("projectId", { length: 255 }).notNull().unique(), // Manus project ID
+  versionId: varchar("versionId", { length: 255 }), // Latest version ID
+  projectName: varchar("projectName", { length: 255 }).notNull(), // Internal project name
+  projectTitle: varchar("projectTitle", { length: 255 }).notNull(), // Display title
+  projectDescription: text("projectDescription"),
+  
+  // Website URLs
+  previewUrl: text("previewUrl"), // Development preview URL
+  publishedUrl: text("publishedUrl"), // Published/production URL
+  customDomain: varchar("customDomain", { length: 255 }), // Custom domain if configured
+  
+  // Project configuration
+  template: varchar("template", { length: 100 }).default("web-static"), // Template used
+  features: text("features"), // JSON array of enabled features
+  
+  // Status
+  status: mysqlEnum("status", ["creating", "active", "error", "archived"]).default("creating").notNull(),
+  lastDeployedAt: timestamp("lastDeployedAt"),
+  
+  isActive: int("isActive").default(1).notNull(), // 1 = active, 0 = archived
+  
+  createdBy: int("createdBy").notNull().references(() => users.id),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ManusWebsite = typeof manusWebsites.$inferSelect;
+export type InsertManusWebsite = typeof manusWebsites.$inferInsert;
+
+/**
+ * Manus Publish History table - tracks content published to Manus websites
+ */
+export const manusPublishHistory = mysqlTable("manusPublishHistory", {
+  id: int("id").autoincrement().primaryKey(),
+  contentId: int("contentId").notNull().references(() => content.id, { onDelete: "cascade" }),
+  websiteId: int("websiteId").notNull().references(() => manusWebsites.id, { onDelete: "cascade" }),
+  
+  publishedUrl: text("publishedUrl"), // URL where content was published
+  slug: varchar("slug", { length: 500 }), // Content slug/path
+  
+  success: int("success").default(1).notNull(), // 1 = success, 0 = failed
+  errorMessage: text("errorMessage"),
+  
+  publishedBy: int("publishedBy").notNull().references(() => users.id),
+  publishedAt: timestamp("publishedAt").defaultNow().notNull(),
+});
+
+export type ManusPublishHistory = typeof manusPublishHistory.$inferSelect;
+export type InsertManusPublishHistory = typeof manusPublishHistory.$inferInsert;

@@ -120,6 +120,20 @@
       "when": 1771724729665,
       "tag": "0016_lame_gorgon",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "5",
+      "when": 1771726965526,
+      "tag": "0017_petite_satana",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "5",
+      "when": 1771727636361,
+      "tag": "0018_daily_dazzler",
+      "breakpoints": true
     }
   ]
 }

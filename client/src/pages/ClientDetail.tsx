@@ -33,10 +33,13 @@ import {
   Trash2,
   Palette,
   BarChart,
+
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useParams, useLocation } from "wouter";
 import { toast } from "sonner";
+import { WordPressConnections } from "@/components/WordPressConnections";
+import { ManusWebsites } from "@/components/ManusWebsites";
 
 export default function ClientDetail() {
   const params = useParams<{ id: string }>();
@@ -226,6 +229,14 @@ export default function ClientDetail() {
           <TabsTrigger value="analytics" className="gap-2">
             <BarChart className="h-4 w-4" />
             Analytics
+          </TabsTrigger>
+          <TabsTrigger value="wordpress" className="gap-2">
+            <Globe className="h-4 w-4" />
+            WordPress
+          </TabsTrigger>
+          <TabsTrigger value="manus" className="gap-2">
+            <Globe className="h-4 w-4" />
+            Manus Websites
           </TabsTrigger>
         </TabsList>
 
@@ -521,6 +532,16 @@ export default function ClientDetail() {
         {/* Branding Tab */}
         <TabsContent value="branding">
           <BrandingTab clientId={clientId} />
+        </TabsContent>
+
+        {/* WordPress Tab */}
+        <TabsContent value="wordpress">
+          <WordPressConnections clientId={clientId} />
+        </TabsContent>
+
+        {/* Manus Websites Tab */}
+        <TabsContent value="manus">
+          <ManusWebsites clientId={clientId} />
         </TabsContent>
       </Tabs>
     </div>
