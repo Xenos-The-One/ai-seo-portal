@@ -219,6 +219,6 @@
 - [x] Create data fetching functions for traffic metrics
 - [x] Create data fetching functions for keyword performance
 - [x] Build UI for managing Google Analytics credentials in ClientDetail page
-- [ ] Update Performance dashboard to display real GA data
-- [ ] Update client portal Performance page to show real GA data
+- [x] Update Performance dashboard to display real GA data
+- [x] Update client portal Performance page to show real GA data
 - [x] Write tests for Google Analytics integration

@@ -4,11 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { trpc } from "@/lib/trpc";
-import { TrendingUp, Eye, MousePointerClick, Share2, ArrowUp, ArrowDown } from "lucide-react";
+import { TrendingUp, Eye, MousePointerClick, Share2, ArrowUp, ArrowDown, BarChart3, Activity } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function PortalPerformance() {
   const [, setLocation] = useLocation();
   const [user, setUser] = useState<any>(null);
+  const [dataSource, setDataSource] = useState<"internal" | "ga">("internal");
 
   useEffect(() => {
     const token = localStorage.getItem("client_portal_token");
@@ -25,6 +27,26 @@ export default function PortalPerformance() {
   const { data: contentList } = trpc.content.list.useQuery(
     undefined,
     { enabled: !!user }
+  );
+  
+  // Google Analytics data
+  const { data: gaMetrics } = trpc.googleAnalytics.getMetrics.useQuery(
+    {
+      clientId: user?.clientId!,
+      startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      endDate: new Date().toISOString().split('T')[0],
+    },
+    { enabled: dataSource === "ga" && !!user?.clientId }
+  );
+  
+  const { data: gaPages } = trpc.googleAnalytics.getPageMetrics.useQuery(
+    {
+      clientId: user?.clientId!,
+      startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      endDate: new Date().toISOString().split('T')[0],
+      limit: 10,
+    },
+    { enabled: dataSource === "ga" && !!user?.clientId }
   );
 
   if (!user) {
@@ -45,9 +67,15 @@ export default function PortalPerformance() {
   );
 
   // Calculate totals
-  const totalViews = performanceData?.totalViews || 0;
-  const totalClicks = performanceData?.totalClicks || 0;
-  const totalShares = performanceData?.totalShares || 0;
+  const totalViews = dataSource === "ga" && gaMetrics 
+    ? (gaMetrics.pageviews || 0)
+    : (performanceData?.totalViews || 0);
+  const totalClicks = dataSource === "ga" 
+    ? 0 // GA doesn't track clicks in the same way
+    : (performanceData?.totalClicks || 0);
+  const totalShares = dataSource === "ga" 
+    ? 0
+    : (performanceData?.totalShares || 0);
   const avgEngagement = clientContent.length > 0 
     ? ((totalClicks + totalShares) / clientContent.length).toFixed(1)
     : "0";
@@ -67,9 +95,30 @@ export default function PortalPerformance() {
               <h1 className="text-2xl font-bold">Performance Dashboard</h1>
               <p className="text-sm text-muted-foreground">Track your content performance</p>
             </div>
-            <Link href="/portal/dashboard">
-              <Button variant="outline">Back to Dashboard</Button>
-            </Link>
+            <div className="flex gap-4">
+              <Select value={dataSource} onValueChange={(v) => setDataSource(v as "internal" | "ga")}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="internal">
+                    <div className="flex items-center gap-2">
+                      <Activity className="h-4 w-4" />
+                      Internal Tracking
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="ga">
+                    <div className="flex items-center gap-2">
+                      <BarChart3 className="h-4 w-4" />
+                      Google Analytics
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <Link href="/portal/dashboard">
+                <Button variant="outline">Back to Dashboard</Button>
+              </Link>
+            </div>
           </div>
         </div>
       </header>
