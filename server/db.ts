@@ -441,3 +441,40 @@ export async function deleteContentBrief(id: number) {
   if (!db) throw new Error("Database not available");
   await db.delete(contentBriefs).where(eq(contentBriefs.id, id));
 }
+
+// Portal Branding functions
+export async function getPortalBranding(clientId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const { portalBranding } = await import("../drizzle/schema");
+  const result = await db.select().from(portalBranding).where(eq(portalBranding.clientId, clientId)).limit(1);
+  return result[0] || null;
+}
+
+export async function upsertPortalBranding(data: {
+  clientId: number;
+  logoUrl?: string;
+  primaryColor?: string;
+  secondaryColor?: string;
+  portalName?: string;
+  welcomeMessage?: string;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const { portalBranding } = await import("../drizzle/schema");
+  
+  // Check if branding exists
+  const existing = await getPortalBranding(data.clientId);
+  
+  if (existing) {
+    // Update existing
+    await db.update(portalBranding)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(portalBranding.clientId, data.clientId));
+    return { ...existing, ...data };
+  } else {
+    // Insert new
+    const result = await db.insert(portalBranding).values(data);
+    return { id: result[0].insertId, ...data };
+  }
+}

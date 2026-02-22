@@ -31,6 +31,7 @@ import {
   UserPlus,
   Copy,
   Trash2,
+  Palette,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useParams, useLocation } from "wouter";
@@ -214,8 +215,12 @@ export default function ClientDetail() {
             Budget
           </TabsTrigger>
           <TabsTrigger value="portal" className="gap-2">
-            <UserPlus className="h-4 w-4" />
+            <Lock className="h-4 w-4" />
             Portal Access
+          </TabsTrigger>
+          <TabsTrigger value="branding" className="gap-2">
+            <Palette className="h-4 w-4" />
+            Branding
           </TabsTrigger>
         </TabsList>
 
@@ -501,6 +506,11 @@ export default function ClientDetail() {
         {/* Portal Access Tab */}
         <TabsContent value="portal">
           <PortalAccessTab clientId={clientId} clientName={client.name} />
+        </TabsContent>
+
+        {/* Branding Tab */}
+        <TabsContent value="branding">
+          <BrandingTab clientId={clientId} />
         </TabsContent>
       </Tabs>
     </div>
@@ -915,6 +925,196 @@ function PortalAccessTab({ clientId, clientName }: { clientId: number; clientNam
           </Card>
         </div>
       )}
+    </div>
+  );
+}
+
+
+// Branding Tab Component
+function BrandingTab({ clientId }: { clientId: number }) {
+  const { data: branding, refetch } = trpc.portalBranding.get.useQuery({ clientId });
+  const upsertMutation = trpc.portalBranding.upsert.useMutation();
+  
+  const [formData, setFormData] = useState({
+    logoUrl: "",
+    primaryColor: "#3b82f6",
+    secondaryColor: "#1e40af",
+    portalName: "",
+    welcomeMessage: "",
+  });
+
+  useEffect(() => {
+    if (branding) {
+      setFormData({
+        logoUrl: branding.logoUrl || "",
+        primaryColor: branding.primaryColor || "#3b82f6",
+        secondaryColor: branding.secondaryColor || "#1e40af",
+        portalName: branding.portalName || "",
+        welcomeMessage: branding.welcomeMessage || "",
+      });
+    }
+  }, [branding]);
+
+  const handleSave = async () => {
+    try {
+      await upsertMutation.mutateAsync({
+        clientId,
+        ...formData,
+      });
+      toast.success("Branding settings saved successfully!");
+      refetch();
+    } catch {
+      toast.error("Failed to save branding settings");
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Palette className="h-5 w-5" />
+            Portal Branding
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Customize the appearance of the client portal for this client
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="portal-name">Portal Name</Label>
+            <Input
+              id="portal-name"
+              placeholder="Client Portal"
+              value={formData.portalName}
+              onChange={(e) => setFormData({ ...formData, portalName: e.target.value })}
+            />
+            <p className="text-xs text-muted-foreground">
+              Displayed in the portal header
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="logo-url">Logo URL</Label>
+            <Input
+              id="logo-url"
+              placeholder="https://example.com/logo.png"
+              value={formData.logoUrl}
+              onChange={(e) => setFormData({ ...formData, logoUrl: e.target.value })}
+            />
+            <p className="text-xs text-muted-foreground">
+              URL to the logo image (recommended size: 200x50px)
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="primary-color">Primary Color</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="primary-color"
+                  type="color"
+                  value={formData.primaryColor}
+                  onChange={(e) => setFormData({ ...formData, primaryColor: e.target.value })}
+                  className="w-20 h-10 p-1"
+                />
+                <Input
+                  value={formData.primaryColor}
+                  onChange={(e) => setFormData({ ...formData, primaryColor: e.target.value })}
+                  placeholder="#3b82f6"
+                  className="flex-1"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="secondary-color">Secondary Color</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="secondary-color"
+                  type="color"
+                  value={formData.secondaryColor}
+                  onChange={(e) => setFormData({ ...formData, secondaryColor: e.target.value })}
+                  className="w-20 h-10 p-1"
+                />
+                <Input
+                  value={formData.secondaryColor}
+                  onChange={(e) => setFormData({ ...formData, secondaryColor: e.target.value })}
+                  placeholder="#1e40af"
+                  className="flex-1"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="welcome-message">Welcome Message</Label>
+            <Textarea
+              id="welcome-message"
+              placeholder="Welcome to your content portal!"
+              value={formData.welcomeMessage}
+              onChange={(e) => setFormData({ ...formData, welcomeMessage: e.target.value })}
+              rows={3}
+            />
+            <p className="text-xs text-muted-foreground">
+              Shown on the portal dashboard
+            </p>
+          </div>
+
+          <Separator />
+
+          <div className="space-y-4">
+            <h4 className="font-medium">Preview</h4>
+            <div
+              className="border rounded-lg p-6 space-y-4"
+              style={{
+                backgroundColor: `${formData.primaryColor}10`,
+                borderColor: formData.primaryColor,
+              }}
+            >
+              {formData.logoUrl && (
+                <img
+                  src={formData.logoUrl}
+                  alt="Logo preview"
+                  className="h-12 object-contain"
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                  }}
+                />
+              )}
+              <h3
+                className="text-2xl font-bold"
+                style={{ color: formData.primaryColor }}
+              >
+                {formData.portalName || "Client Portal"}
+              </h3>
+              {formData.welcomeMessage && (
+                <p className="text-sm" style={{ color: formData.secondaryColor }}>
+                  {formData.welcomeMessage}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <Button
+            onClick={handleSave}
+            disabled={upsertMutation.isPending}
+            className="w-full"
+          >
+            {upsertMutation.isPending ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="h-4 w-4 mr-2" />
+                Save Branding Settings
+              </>
+            )}
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -617,6 +617,30 @@ export const appRouter = router({
       }),
   }),
 
+  // Portal Branding
+  portalBranding: router({
+    get: protectedProcedure
+      .input(z.object({ clientId: z.number() }))
+      .query(async ({ input }) => {
+        const { getPortalBranding } = await import("./db");
+        return await getPortalBranding(input.clientId);
+      }),
+
+    upsert: protectedProcedure
+      .input(z.object({
+        clientId: z.number(),
+        logoUrl: z.string().optional(),
+        primaryColor: z.string().optional(),
+        secondaryColor: z.string().optional(),
+        portalName: z.string().optional(),
+        welcomeMessage: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { upsertPortalBranding } = await import("./db");
+        return await upsertPortalBranding(input);
+      }),
+  }),
+
   // Client Portal Authentication
   clientPortal: router({
     // Invitation management

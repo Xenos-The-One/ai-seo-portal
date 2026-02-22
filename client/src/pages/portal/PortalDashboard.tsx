@@ -3,10 +3,12 @@ import { useLocation, Link } from "wouter";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FileText, Calendar, TrendingUp, LogOut, User } from "lucide-react";
+import { trpc } from "@/lib/trpc";
 
 export default function PortalDashboard() {
   const [, setLocation] = useLocation();
   const [user, setUser] = useState<any>(null);
+  const [branding, setBranding] = useState<any>(null);
 
   useEffect(() => {
     // Check if user is logged in
@@ -18,7 +20,22 @@ export default function PortalDashboard() {
       return;
     }
     
-    setUser(JSON.parse(userData));
+    const parsedUser = JSON.parse(userData);
+    setUser(parsedUser);
+    
+    // Fetch branding settings
+    if (parsedUser.clientId) {
+      fetch(`/api/trpc/portalBranding.get?input=${encodeURIComponent(JSON.stringify({ clientId: parsedUser.clientId }))}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.result?.data) {
+            setBranding(data.result.data);
+          }
+        })
+        .catch(() => {});
+    }
   }, [setLocation]);
 
   const handleLogout = () => {
@@ -38,11 +55,18 @@ export default function PortalDashboard() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b bg-card">
+      <header className="border-b bg-card" style={branding?.primaryColor ? { borderColor: branding.primaryColor } : {}}>
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Client Portal</h1>
-            <p className="text-sm text-muted-foreground">Welcome back, {user.name}</p>
+          <div className="flex items-center gap-4">
+            {branding?.logoUrl && (
+              <img src={branding.logoUrl} alt="Logo" className="h-10 object-contain" />
+            )}
+            <div>
+              <h1 className="text-2xl font-bold" style={branding?.primaryColor ? { color: branding.primaryColor } : {}}>
+                {branding?.portalName || "Client Portal"}
+              </h1>
+              <p className="text-sm text-muted-foreground">Welcome back, {user.name}</p>
+            </div>
           </div>
           <div className="flex items-center gap-4">
             <div className="text-right">
